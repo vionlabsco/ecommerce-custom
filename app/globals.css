@@ -5,7 +5,7 @@
 @tailwind utilities;
 
 :root {
-  color-scheme: dark;
+  color-scheme: light;
 }
 
 @layer base {
@@ -13,21 +13,19 @@
     scroll-behavior: smooth;
   }
   body {
-    @apply bg-ink text-paper;
+    @apply bg-paper text-ink;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
   }
   ::selection {
     background-color: theme('colors.accent');
-    color: theme('colors.ink');
+    color: theme('colors.paper');
   }
-  /* Thin, on-brand scrollbar */
   * {
     scrollbar-width: thin;
     scrollbar-color: theme('colors.line') transparent;
   }
-  /* Hover-only ring affordance for inputs */
   input:focus,
   textarea:focus,
   select:focus {
@@ -36,13 +34,13 @@
 }
 
 @layer components {
-  /* Tiny utility: monospace tech-label */
+  /* Tiny utility: small caps label, used for "DESK SURFACE SERIES" etc. */
   .label-mono {
-    @apply font-mono text-[11px] uppercase tracking-widest2 text-paper-soft;
+    @apply text-[11px] font-medium uppercase tracking-widest2 text-ink-soft;
   }
-  /* Tiny utility: bright accent label */
+  /* Accent variant of the same label. */
   .label-accent {
-    @apply font-mono text-[11px] uppercase tracking-widest2 text-accent;
+    @apply text-[11px] font-semibold uppercase tracking-widest2 text-accent;
   }
 }
 
@@ -53,20 +51,10 @@
   .text-pretty {
     text-wrap: pretty;
   }
-  /* Subtle grid background — used on hero sections */
+  /* Subtle grid background used on hero sections (very faint on light bg) */
   .bg-grid {
-    background-image: linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+    background-image: linear-gradient(rgba(10,10,10,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(10,10,10,0.04) 1px, transparent 1px);
     background-size: 56px 56px;
-  }
-  /* Diagonal stripe used as section divider */
-  .stripe-accent {
-    background-image: repeating-linear-gradient(
-      45deg,
-      theme('colors.accent') 0,
-      theme('colors.accent') 8px,
-      theme('colors.ink') 8px,
-      theme('colors.ink') 16px
-    );
   }
 }

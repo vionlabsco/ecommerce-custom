@@ -13,13 +13,12 @@ export function NewsletterForm() {
   function handleSubmit(e: FormEvent) {
     e.preventDefault()
     if (!email) return
-    // TODO: POST to your email provider here.
     setDone(true)
   }
 
   if (done) {
     return (
-      <p className="font-mono text-[12px] uppercase tracking-widest2 text-lime">
+      <p className="text-[12px] font-medium uppercase tracking-widest2 text-lime">
         ● You&apos;re on the list. Look out for a note soon.
       </p>
     )
@@ -36,11 +35,11 @@ export function NewsletterForm() {
         value={email}
         onChange={(e) => setEmail(e.target.value)}
         placeholder="you@vionlabs.co"
-        className="min-w-0 flex-1 rounded-md border border-line bg-ink px-4 py-3 font-mono text-[13px] text-paper placeholder:text-paper-mute focus:border-accent focus:outline-none"
+        className="min-w-0 flex-1 rounded-md border border-line bg-paper px-4 py-3 text-[14px] text-ink placeholder:text-ink-mute focus:border-accent focus:outline-none"
       />
       <button
         type="submit"
-        className="shrink-0 rounded-md bg-accent px-5 py-3 font-mono text-[12px] font-bold uppercase tracking-widest2 text-ink transition-colors hover:bg-accent-hover"
+        className="shrink-0 rounded-md bg-ink px-5 py-3 text-[12px] font-bold uppercase tracking-widest2 text-paper transition-colors hover:bg-accent hover:text-ink"
       >
         Subscribe
       </button>

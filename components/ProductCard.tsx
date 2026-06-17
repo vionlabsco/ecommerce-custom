@@ -21,27 +21,27 @@ export function ProductCard({ product }: { product: Product }) {
         {/* badges */}
         <div className="absolute left-3 top-3 flex flex-col gap-1.5">
           {product.badge && (
-            <span className="w-fit rounded-sm bg-accent px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-widest2 text-ink">
+            <span className="w-fit rounded-sm bg-accent px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest2 text-ink">
               {product.badge}
             </span>
           )}
           {onSale && (
-            <span className="w-fit rounded-sm bg-lime px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-widest2 text-ink">
+            <span className="w-fit rounded-sm bg-lime px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest2 text-paper">
               Sale
             </span>
           )}
         </div>
 
         {!available && (
-          <div className="absolute inset-0 flex items-center justify-center bg-ink/75 backdrop-blur-[2px]">
-            <span className="rounded-sm border border-line bg-ink px-4 py-1.5 font-mono text-[11px] uppercase tracking-widest2 text-paper">
+          <div className="absolute inset-0 flex items-center justify-center bg-paper/75 backdrop-blur-[2px]">
+            <span className="rounded-sm border border-line bg-paper px-4 py-1.5 text-[11px] font-medium uppercase tracking-widest2 text-ink">
               Sold out
             </span>
           </div>
         )}
 
-        {/* hover affordance — bright accent bar slides up */}
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 translate-y-full bg-accent py-2.5 text-center font-mono text-[11px] font-bold uppercase tracking-widest2 text-ink transition-transform duration-300 ease-out group-hover:translate-y-0">
+        {/* hover affordance — accent bar slides up */}
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 translate-y-full bg-accent py-2.5 text-center text-[11px] font-bold uppercase tracking-widest2 text-ink transition-transform duration-300 ease-out group-hover:translate-y-0">
           View product →
         </div>
       </div>
@@ -49,14 +49,14 @@ export function ProductCard({ product }: { product: Product }) {
       <div className="mt-4 flex items-baseline justify-between gap-3">
         <div className="min-w-0">
           <p className="label-mono">{product.category}</p>
-          <h3 className="mt-1 truncate font-display text-lg font-bold text-paper">
+          <h3 className="mt-1 truncate font-display text-lg font-bold text-ink">
             {product.name}
           </h3>
         </div>
         <Price
           priceCents={product.priceCents}
           compareAtCents={product.compareAtCents}
-          className="shrink-0 font-display text-lg font-bold text-paper"
+          className="shrink-0 font-display text-lg font-bold text-ink"
         />
       </div>
     </Link>

@@ -11,8 +11,6 @@ const MAX_BY_STATE = { 'in-stock': 8, 'low-stock': 3, 'sold-out': 0 } as const
 export function AddToCart({ product }: { product: Product }) {
   const { addItem } = useCart()
 
-  // Defensive defaults — products created via the admin without variants set
-  // shouldn't crash this component.
   const colors = product.colors ?? []
   const sizes = product.sizes ?? []
   const hasColors = colors.length > 0
@@ -73,7 +71,7 @@ export function AddToCart({ product }: { product: Product }) {
         <div>
           <div className="flex items-baseline justify-between">
             <span className="label-mono">Colour</span>
-            <span className="font-mono text-[12px] text-paper">{color}</span>
+            <span className="text-[12px] text-ink">{color}</span>
           </div>
           <div className="mt-3 flex flex-wrap gap-3">
             {colors.map((c) => (
@@ -86,8 +84,8 @@ export function AddToCart({ product }: { product: Product }) {
                 className={cn(
                   'h-10 w-10 rounded-md border-2 transition',
                   color === c.name
-                    ? 'border-accent ring-2 ring-accent ring-offset-2 ring-offset-ink'
-                    : 'border-line hover:border-paper-soft',
+                    ? 'border-accent ring-2 ring-accent ring-offset-2 ring-offset-paper'
+                    : 'border-line hover:border-ink-soft',
                 )}
                 style={{ backgroundColor: c.hex }}
               />
@@ -101,7 +99,7 @@ export function AddToCart({ product }: { product: Product }) {
         <div>
           <div className="flex items-baseline justify-between">
             <span className="label-mono">Size</span>
-            <button className="font-mono text-[11px] uppercase tracking-widest2 text-paper-soft hover:text-accent">
+            <button className="text-[11px] font-medium uppercase tracking-widest2 text-ink-soft hover:text-accent">
               Size guide
             </button>
           </div>
@@ -116,12 +114,12 @@ export function AddToCart({ product }: { product: Product }) {
                   disabled={oos}
                   aria-pressed={selected}
                   className={cn(
-                    'min-w-[3.5rem] rounded-md border px-4 py-2.5 font-mono text-[12px] uppercase tracking-widest2 transition',
+                    'min-w-[3.5rem] rounded-md border px-4 py-2.5 text-[12px] font-medium uppercase tracking-widest2 transition',
                     selected
-                      ? 'border-accent bg-accent text-ink'
-                      : 'border-line text-paper hover:border-paper-soft',
+                      ? 'border-ink bg-ink text-paper'
+                      : 'border-line bg-paper text-ink hover:border-ink',
                     oos &&
-                      'cursor-not-allowed border-line text-paper-mute line-through hover:border-line',
+                      'cursor-not-allowed border-line bg-surface text-ink-mute line-through hover:border-line',
                   )}
                 >
                   {s}
@@ -134,16 +132,16 @@ export function AddToCart({ product }: { product: Product }) {
 
       {/* Stock indicator */}
       {hasSizes && size && (
-        <p className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-widest2">
+        <p className="flex items-center gap-2 text-[11px] font-medium uppercase tracking-widest2">
           <span
             className={cn(
               'inline-block h-2 w-2 rounded-full',
               state === 'in-stock' && 'bg-lime',
               state === 'low-stock' && 'bg-accent',
-              state === 'sold-out' && 'bg-paper-mute',
+              state === 'sold-out' && 'bg-ink-mute',
             )}
           />
-          <span className="text-paper-soft">
+          <span className="text-ink-soft">
             {state === 'in-stock' && 'In stock — ships 1–2 days'}
             {state === 'low-stock' && 'Only a few left'}
             {state === 'sold-out' && 'Sold out in this size'}
@@ -155,10 +153,10 @@ export function AddToCart({ product }: { product: Product }) {
         onClick={handleAdd}
         disabled={disabled}
         className={cn(
-          'w-full rounded-md px-6 py-4 font-mono text-[12px] font-bold uppercase tracking-widest2 transition-colors',
+          'w-full rounded-md px-6 py-4 text-[12px] font-bold uppercase tracking-widest2 transition-colors',
           disabled
-            ? 'cursor-not-allowed border border-line bg-surface text-paper-mute'
-            : 'bg-accent text-ink hover:bg-accent-hover',
+            ? 'cursor-not-allowed border border-line bg-surface text-ink-mute'
+            : 'bg-ink text-paper hover:bg-accent hover:text-ink',
         )}
       >
         {buttonLabel}

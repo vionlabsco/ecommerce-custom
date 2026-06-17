@@ -14,7 +14,7 @@ export function Price({ priceCents, compareAtCents, className }: Props) {
     <span className={cn('inline-flex items-baseline gap-2', className)}>
       <span className={cn(onSale && 'text-accent')}>{formatPrice(priceCents)}</span>
       {onSale && (
-        <span className="text-sm font-normal text-paper-soft line-through decoration-accent/60">
+        <span className="text-sm font-normal text-ink-mute line-through decoration-accent/60">
           {formatPrice(compareAtCents!)}
         </span>
       )}

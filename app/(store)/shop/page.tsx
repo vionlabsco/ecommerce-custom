@@ -27,10 +27,10 @@ export default async function ShopPage({
     <div className="mx-auto max-w-shell px-5 py-10 md:px-8 md:py-16">
       <header className="max-w-2xl">
         <p className="label-accent">The Collection</p>
-        <h1 className="mt-3 font-display text-4xl font-bold leading-[1.05] md:text-5xl">
+        <h1 className="mt-3 font-display text-4xl font-bold leading-[1.05] text-ink md:text-5xl">
           {active ?? 'Every surface'}
         </h1>
-        <p className="mt-3 text-paper-soft">
+        <p className="mt-3 text-ink-soft">
           {products.length} {products.length === 1 ? 'pad' : 'pads'} — engineered,
           tested, and built to outlast.
         </p>
@@ -46,10 +46,10 @@ export default async function ShopPage({
               key={tab.label}
               href={href}
               className={cn(
-                'rounded-md border px-4 py-2 font-mono text-[11px] uppercase tracking-widest2 transition-colors',
+                'rounded-md border px-4 py-2 text-[11px] font-medium uppercase tracking-widest2 transition-colors',
                 isActive
-                  ? 'border-accent bg-accent text-ink'
-                  : 'border-line text-paper-soft hover:border-paper hover:text-paper',
+                  ? 'border-ink bg-ink text-paper'
+                  : 'border-line bg-paper text-ink-soft hover:border-ink hover:text-ink',
               )}
             >
               {tab.label}
@@ -61,10 +61,10 @@ export default async function ShopPage({
       {products.length === 0 ? (
         <div className="mt-16 rounded-md border border-line bg-surface px-6 py-16 text-center">
           <p className="label-mono">No matches</p>
-          <p className="mt-3 font-display text-2xl font-bold text-paper">
+          <p className="mt-3 font-display text-2xl font-bold text-ink">
             Nothing in this surface yet
           </p>
-          <p className="mt-2 text-sm text-paper-soft">Try another category.</p>
+          <p className="mt-2 text-sm text-ink-soft">Try another category.</p>
         </div>
       ) : (
         <div className="mt-8 grid grid-cols-2 gap-x-4 gap-y-8 md:mt-10 md:grid-cols-3 md:gap-x-5 md:gap-y-12 lg:grid-cols-4">

@@ -34,26 +34,26 @@ export function Header() {
 
   return (
     <>
-      {/* Top utility bar */}
-      <div className="border-b border-line bg-ink">
-        <div className="mx-auto flex max-w-shell items-center justify-center gap-3 px-5 py-2 text-paper-soft md:px-8">
-          <span className="font-mono text-[10.5px] uppercase tracking-widest2">
+      {/* Single utility bar — replaces the old marquee + ticker pair */}
+      <div className="border-b border-line bg-surface">
+        <div className="mx-auto flex max-w-shell items-center justify-center gap-3 px-5 py-2 text-ink-soft md:px-8">
+          <span className="text-[10.5px] font-medium uppercase tracking-widest2">
             Free shipping over $50
           </span>
           <span className="text-accent">●</span>
-          <span className="font-mono text-[10.5px] uppercase tracking-widest2">
+          <span className="text-[10.5px] font-medium uppercase tracking-widest2">
             30-day returns
           </span>
-          <span className="text-accent">●</span>
-          <span className="font-mono text-[10.5px] uppercase tracking-widest2">
+          <span className="hidden text-accent sm:inline">●</span>
+          <span className="hidden text-[10.5px] font-medium uppercase tracking-widest2 sm:inline">
             1-yr warranty
           </span>
         </div>
       </div>
 
-      <header className="sticky top-0 z-40 border-b border-line bg-ink/90 backdrop-blur-md">
+      <header className="sticky top-0 z-40 border-b border-line bg-paper/90 backdrop-blur-md">
         <div className="mx-auto grid h-16 max-w-shell grid-cols-2 items-center gap-4 px-5 md:grid-cols-3 md:px-8">
-          <nav className="hidden items-center gap-7 font-mono text-[11px] uppercase tracking-widest2 text-paper-soft md:flex">
+          <nav className="hidden items-center gap-7 text-[11px] font-medium uppercase tracking-widest2 text-ink-soft md:flex">
             {NAV.map((l) => (
               <Link
                 key={l.label}
@@ -67,7 +67,7 @@ export function Header() {
 
           <Link
             href="/"
-            className="justify-self-start font-display text-[22px] font-bold tracking-tightest text-paper md:justify-self-center"
+            className="justify-self-start font-display text-[22px] font-bold tracking-tightest text-ink md:justify-self-center"
           >
             {site.brand}
           </Link>
@@ -75,24 +75,24 @@ export function Header() {
           <div className="flex items-center justify-end gap-2">
             <Link
               href="/shop"
-              className="px-3 py-2 font-mono text-[11px] uppercase tracking-widest2 text-paper-soft transition-colors hover:text-paper md:hidden"
+              className="px-3 py-2 text-[11px] font-medium uppercase tracking-widest2 text-ink-soft transition-colors hover:text-ink md:hidden"
             >
               Shop
             </Link>
             <button
               onClick={openCart}
               aria-label="Open cart"
-              className="group inline-flex items-center gap-2 rounded-md border border-line bg-ink px-3 py-2 text-paper transition-colors hover:border-accent hover:text-accent"
+              className="group inline-flex items-center gap-2 rounded-md border border-line bg-paper px-3 py-2 text-ink transition-colors hover:border-accent hover:text-accent"
             >
               <span className="relative inline-flex">
                 <BagIcon />
                 {hydrated && count > 0 && (
-                  <span className="absolute -right-2 -top-2 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-accent px-1 font-mono text-[10px] font-semibold text-ink">
+                  <span className="absolute -right-2 -top-2 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-accent px-1 text-[10px] font-semibold text-ink">
                     {count}
                   </span>
                 )}
               </span>
-              <span className="hidden font-mono text-[11px] uppercase tracking-widest2 sm:inline">
+              <span className="hidden text-[11px] font-medium uppercase tracking-widest2 sm:inline">
                 Cart
               </span>
             </button>
