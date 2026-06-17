@@ -3,6 +3,7 @@ import { Header } from '@/components/Header'
 import { Footer } from '@/components/Footer'
 import { CartDrawer } from '@/components/CartDrawer'
 import { Marquee } from '@/components/Marquee'
+import { TrackingScripts } from '@/components/TrackingScripts'
 
 const ANNOUNCEMENTS = [
   'Free shipping over $50',
@@ -19,6 +20,9 @@ export default function StoreLayout({ children }: { children: React.ReactNode })
       <main>{children}</main>
       <Footer />
       <CartDrawer />
+      {/* Tracking pixels — admin-configured via /admin/apps. Only injected on
+          storefront pages, never on /admin/*. */}
+      <TrackingScripts />
     </CartProvider>
   )
 }
