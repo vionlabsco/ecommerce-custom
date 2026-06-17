@@ -3,20 +3,29 @@ import { ProductCard } from '@/components/ProductCard'
 import { ProductImage } from '@/components/ProductImage'
 import { Reveal } from '@/components/Reveal'
 import { Price } from '@/components/Price'
-import {
-  getFeaturedProducts,
-  getAllProducts,
-  getProductBySlug,
-  getProductsByCategory,
-  CATEGORIES,
-} from '@/lib/products'
+import { getAllProducts, getCategories } from '@/lib/products'
 import { site } from '@/lib/site'
 
-export default function HomePage() {
-  const featured = getFeaturedProducts()
-  const all = getAllProducts()
-  const hero = getProductBySlug('garun-wool-sweater')!
-  const bandProduct = getProductBySlug('waxed-chore-jacket')!
+export const dynamic = 'force-dynamic'
+
+export default async function HomePage() {
+  const all = await getAllProducts()
+  const categories = await getCategories()
+
+  if (all.length === 0) {
+    return (
+      <div className="mx-auto max-w-shell px-5 py-32 text-center">
+        <h1 className="font-display text-4xl">No products yet</h1>
+        <p className="mt-3 text-ink-soft">
+          Add your first product in the admin and the store comes to life.
+        </p>
+      </div>
+    )
+  }
+
+  const featured = all.filter((p) => p.featured)
+  const hero = (all.find((p) => p.slug === 'garun-wool-sweater') ?? all[0])!
+  const bandProduct = (all.find((p) => p.slug === 'waxed-chore-jacket') ?? all[1] ?? all[0])!
 
   return (
     <>
@@ -28,20 +37,20 @@ export default function HomePage() {
               className="animate-rise text-[12px] uppercase tracking-[0.26em] text-clay"
               style={{ animationDelay: '40ms' }}
             >
-              Autumn / Winter Collection
+              The Desk Collection
             </p>
             <h1
               className="animate-rise mt-5 font-display text-[clamp(2.75rem,7vw,5.5rem)] font-light leading-[0.94] tracking-tightest text-balance"
               style={{ animationDelay: '120ms' }}
             >
-              Clothes you keep, not clothes you replace.
+              Pads you keep, not pads you replace.
             </h1>
             <p
               className="animate-rise mt-6 max-w-md text-lg leading-relaxed text-ink-soft text-pretty"
               style={{ animationDelay: '220ms' }}
             >
-              {site.tagline} Made in small batches from honest materials, and built
-              to be worn long after the season turns.
+              {site.tagline} A glass pad and a cloth pad, each in square and
+              rectangle — made for the way you actually move.
             </p>
             <div
               className="animate-rise mt-9 flex flex-wrap items-center gap-3"
@@ -54,21 +63,21 @@ export default function HomePage() {
                 Shop the collection
               </Link>
               <Link
-                href="/shop?category=Knitwear"
+                href="/shop?category=Glass"
                 className="rounded-full px-5 py-3.5 text-[13px] uppercase tracking-[0.16em] text-ink underline-offset-4 transition-colors hover:text-clay hover:underline"
               >
-                Explore knitwear →
+                Explore glass pads →
               </Link>
             </div>
             <ul
               className="animate-rise mt-11 flex flex-wrap gap-x-8 gap-y-2 text-[13px] text-ink-soft"
               style={{ animationDelay: '420ms' }}
             >
-              <li>Small-batch made</li>
+              <li>Free shipping over $50</li>
               <li className="text-clay">✦</li>
-              <li>Free 30-day returns</li>
+              <li>30-day returns</li>
               <li className="text-clay">✦</li>
-              <li>Carbon-neutral delivery</li>
+              <li>1-year warranty</li>
             </ul>
           </div>
 
@@ -127,12 +136,12 @@ export default function HomePage() {
             <div>
               <p className="text-[12px] uppercase tracking-[0.22em] text-clay">Our promise</p>
               <h2 className="mt-4 font-display text-4xl leading-[1.05] text-balance md:text-5xl">
-                Fewer things. Better made. Worn for years.
+                Two pads. Made properly. Built to last.
               </h2>
               <p className="mt-6 max-w-md leading-relaxed text-paper/70 text-pretty">
-                We design a small, tightly edited collection and make it properly — natural
-                fibres, real construction, and finishing you can feel. No drops you&apos;ll
-                forget by spring.
+                We make two pads — glass and cloth — and obsess over the surface, the
+                base, and the edges. That&apos;s the whole catalogue, and that&apos;s the
+                point.
               </p>
               <Link
                 href="/shop"
@@ -162,8 +171,8 @@ export default function HomePage() {
           <h2 className="font-display text-3xl md:text-4xl">Shop by category</h2>
         </div>
         <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-          {CATEGORIES.map((cat, i) => {
-            const rep = getProductsByCategory(cat)[0]
+          {categories.map((cat, i) => {
+            const rep = all.find((p) => p.category === cat)
             return (
               <Reveal key={cat} delay={i * 70}>
                 <Link
@@ -208,9 +217,9 @@ export default function HomePage() {
       <section className="mx-auto mt-16 max-w-shell px-5 md:px-8">
         <div className="grid divide-y divide-line border-y border-line text-center sm:grid-cols-3 sm:divide-x sm:divide-y-0">
           {[
-            { t: 'Complimentary shipping', s: 'On every order over $150' },
+            { t: 'Free shipping', s: 'On every order over $50' },
             { t: 'Easy 30-day returns', s: 'Changed your mind? No trouble.' },
-            { t: 'Made to last', s: 'Natural fibres, real construction' },
+            { t: 'Built to last', s: '1-year warranty on every pad' },
           ].map((v) => (
             <div key={v.t} className="px-6 py-10">
               <p className="font-display text-xl">{v.t}</p>

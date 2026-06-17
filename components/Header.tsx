@@ -6,8 +6,8 @@ import { site } from '@/lib/site'
 
 const NAV = [
   { label: 'Shop', href: '/shop' },
-  { label: 'Knitwear', href: '/shop?category=Knitwear' },
-  { label: 'Outerwear', href: '/shop?category=Outerwear' },
+  { label: 'Glass', href: '/shop?category=Glass' },
+  { label: 'Cloth', href: '/shop?category=Cloth' },
 ]
 
 function BagIcon() {

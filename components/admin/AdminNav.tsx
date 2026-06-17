@@ -21,7 +21,7 @@ const NAV = [
   { href: '/admin/orders', label: 'Orders', icon: 'orders' },
   { href: '/admin/customers', label: 'Customers', icon: 'customers' },
   { href: '/admin/support', label: 'Support', icon: 'support' },
-  { href: '/admin/products', label: 'Inventory', icon: 'inventory' },
+  { href: '/admin/products', label: 'Products', icon: 'inventory' },
 ]
 
 export function AdminNav() {

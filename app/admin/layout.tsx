@@ -1,7 +1,9 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { AdminNav } from '@/components/admin/AdminNav'
+import { UserMenu } from '@/components/admin/UserMenu'
 import { site } from '@/lib/site'
+import { createAuthClient } from '@/lib/supabase/auth-server'
 
 // All admin pages read live (mutable) store state, so render them on demand
 // rather than statically prerendering a snapshot at build time.
@@ -11,7 +13,16 @@ export const metadata: Metadata = {
   title: { default: `${site.brand} Admin`, template: `%s · ${site.brand} Admin` },
 }
 
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
+export default async function AdminLayout({ children }: { children: React.ReactNode }) {
+  const supabase = createAuthClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  // No session → this layout still wraps /admin/login (middleware lets it through).
+  // Render children bare so the login page provides its own centered card.
+  if (!user) return <>{children}</>
+
   return (
     <div className="flex min-h-screen bg-[#f6f4ee] text-ink">
       <aside className="fixed inset-y-0 left-0 z-10 hidden w-60 flex-col bg-ink px-4 py-6 md:flex">
@@ -31,9 +42,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <div className="flex min-h-screen flex-1 flex-col md:pl-60">
         <header className="flex items-center gap-3 border-b border-line bg-white/80 px-6 py-3 backdrop-blur">
           <span className="font-display text-lg md:hidden">{site.brand} Admin</span>
-          <span className="ml-auto rounded-full bg-amber-50 px-3 py-1 text-[11px] font-medium text-amber-700 ring-1 ring-inset ring-amber-600/20">
-            Demo · sample data, resets on restart
-          </span>
+          <div className="ml-auto">
+            <UserMenu email={user.email ?? ''} />
+          </div>
         </header>
         <main className="flex-1 px-6 py-7 lg:px-8">{children}</main>
       </div>

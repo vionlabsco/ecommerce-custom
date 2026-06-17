@@ -7,10 +7,8 @@ const COLUMNS = [
     title: 'Shop',
     links: [
       { label: 'All products', href: '/shop' },
-      { label: 'Knitwear', href: '/shop?category=Knitwear' },
-      { label: 'Shirting', href: '/shop?category=Shirting' },
-      { label: 'Outerwear', href: '/shop?category=Outerwear' },
-      { label: 'Accessories', href: '/shop?category=Accessories' },
+      { label: 'Glass pads', href: '/shop?category=Glass' },
+      { label: 'Cloth pads', href: '/shop?category=Cloth' },
     ],
   },
   {

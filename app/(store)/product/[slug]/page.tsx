@@ -6,29 +6,27 @@ import { AddToCart } from '@/components/AddToCart'
 import { ProductCard } from '@/components/ProductCard'
 import { Price } from '@/components/Price'
 import { Reveal } from '@/components/Reveal'
-import {
-  getAllProducts,
-  getProductBySlug,
-  getRelatedProducts,
-} from '@/lib/products'
+import { getProductBySlug, getRelatedProducts } from '@/lib/products'
 
-export function generateStaticParams() {
-  return getAllProducts().map((p) => ({ slug: p.slug }))
-}
+export const dynamic = 'force-dynamic'
 
-export function generateMetadata({ params }: { params: { slug: string } }): Metadata {
-  const product = getProductBySlug(params.slug)
+export async function generateMetadata({
+  params,
+}: {
+  params: { slug: string }
+}): Promise<Metadata> {
+  const product = await getProductBySlug(params.slug)
   return {
     title: product?.name ?? 'Product',
     description: product?.shortDescription,
   }
 }
 
-export default function ProductPage({ params }: { params: { slug: string } }) {
-  const product = getProductBySlug(params.slug)
+export default async function ProductPage({ params }: { params: { slug: string } }) {
+  const product = await getProductBySlug(params.slug)
   if (!product) notFound()
 
-  const related = getRelatedProducts(product, 4)
+  const related = await getRelatedProducts(product, 4)
 
   return (
     <div className="mx-auto max-w-shell px-5 py-8 md:px-8 md:py-12">

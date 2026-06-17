@@ -5,10 +5,10 @@ import { CartDrawer } from '@/components/CartDrawer'
 import { Marquee } from '@/components/Marquee'
 
 const ANNOUNCEMENTS = [
-  'Complimentary shipping over $150',
-  'New-season knitwear has landed',
-  'Made to last, not to last a season',
-  'Free 30-day returns',
+  'Free shipping over $50',
+  'Glass & cloth pads, built to last',
+  '30-day returns',
+  '1-year warranty',
 ]
 
 export default function StoreLayout({ children }: { children: React.ReactNode }) {

@@ -9,7 +9,7 @@
 // for queries. The server actions in ./actions.ts call the mutators below.
 // ──────────────────────────────────────────────────────────────────────────
 
-import { PRODUCTS } from '@/lib/products'
+import { getAllProducts } from '@/lib/products'
 import { supabase, isSupabaseConfigured } from '@/lib/supabase/client'
 
 export type PaymentStatus = 'pending' | 'paid' | 'refunded'
@@ -298,14 +298,8 @@ const SEED_TICKETS: Ticket[] = [
 // Simplified numeric inventory keyed by product id (the storefront uses
 // variant-level stock states; this is a per-product count for the demo).
 const SEED_STOCK: Record<string, number> = {
-  p_garun_sweater: 24,
-  p_lambswool_crew: 41,
-  p_oxford_shirt: 60,
-  p_camp_collar: 18,
-  p_chore_jacket: 6,
-  p_wide_trouser: 33,
-  p_canvas_tote: 52,
-  p_wool_beanie: 4,
+  p_glass_pad: 40,
+  p_cloth_pad: 75,
 }
 // One shared instance across Next's per-route server bundles (single process),
 // so a storefront checkout and an admin read hit the SAME data. (In live mode
@@ -451,8 +445,9 @@ export type ProductInventory = {
   priceCents: number
   stock: number
 }
-export function getInventory(): ProductInventory[] {
-  return PRODUCTS.map((p) => ({
+export async function getInventory(): Promise<ProductInventory[]> {
+  const products = await getAllProducts()
+  return products.map((p) => ({
     id: p.id,
     name: p.name,
     category: p.category,
@@ -525,6 +520,5 @@ export function setTicketStatus(id: string, status: TicketStatus) {
 }
 
 export function setStock(productId: string, stock: number) {
-  if (!(productId in stockLevels)) return
   stockLevels[productId] = Math.max(0, Math.floor(stock))
 }

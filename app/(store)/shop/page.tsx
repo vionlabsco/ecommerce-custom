@@ -2,29 +2,25 @@ import Link from 'next/link'
 import type { Metadata } from 'next'
 import { ProductCard } from '@/components/ProductCard'
 import { Reveal } from '@/components/Reveal'
-import {
-  CATEGORIES,
-  getAllProducts,
-  getProductsByCategory,
-  type Category,
-} from '@/lib/products'
+import { getAllProducts, getProductsByCategory, getCategories } from '@/lib/products'
 import { cn } from '@/lib/cn'
 
 export const metadata: Metadata = { title: 'Shop' }
+export const dynamic = 'force-dynamic'
 
-export default function ShopPage({
+export default async function ShopPage({
   searchParams,
 }: {
   searchParams: { category?: string }
 }) {
+  const categories = await getCategories()
   const raw = searchParams.category
-  const active =
-    raw && (CATEGORIES as readonly string[]).includes(raw) ? (raw as Category) : null
-  const products = active ? getProductsByCategory(active) : getAllProducts()
+  const active = raw && categories.includes(raw) ? raw : null
+  const products = active ? await getProductsByCategory(active) : await getAllProducts()
 
-  const tabs: { label: string; value: Category | null }[] = [
+  const tabs: { label: string; value: string | null }[] = [
     { label: 'All', value: null },
-    ...CATEGORIES.map((c) => ({ label: c, value: c })),
+    ...categories.map((c) => ({ label: c, value: c })),
   ]
 
   return (
