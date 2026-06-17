@@ -8,7 +8,7 @@ import { Price } from '@/components/Price'
 import { Reveal } from '@/components/Reveal'
 import { getProductBySlug, getRelatedProducts } from '@/lib/products'
 
-export const dynamic = 'force-dynamic'
+export const revalidate = 60
 
 export async function generateMetadata({
   params,
@@ -27,84 +27,100 @@ export default async function ProductPage({ params }: { params: { slug: string }
   if (!product) notFound()
 
   const related = await getRelatedProducts(product, 4)
+  const details = product.details ?? []
 
   return (
-    <div className="mx-auto max-w-shell px-5 py-8 md:px-8 md:py-12">
+    <div className="mx-auto max-w-shell px-5 py-6 md:px-8 md:py-12">
       {/* breadcrumb */}
-      <nav className="flex flex-wrap items-center gap-2 text-[12px] uppercase tracking-[0.12em] text-ink-soft">
-        <Link href="/" className="hover:text-ink">Home</Link>
-        <span>/</span>
-        <Link href="/shop" className="hover:text-ink">Shop</Link>
-        <span>/</span>
+      <nav className="flex flex-wrap items-center gap-2 font-mono text-[10.5px] uppercase tracking-widest2 text-paper-soft">
+        <Link href="/" className="hover:text-accent">Home</Link>
+        <span className="text-paper-mute">/</span>
+        <Link href="/shop" className="hover:text-accent">Shop</Link>
+        <span className="text-paper-mute">/</span>
         <Link
           href={`/shop?category=${encodeURIComponent(product.category)}`}
-          className="hover:text-ink"
+          className="hover:text-accent"
         >
           {product.category}
         </Link>
-        <span>/</span>
-        <span className="text-ink">{product.name}</span>
+        <span className="text-paper-mute">/</span>
+        <span className="text-paper">{product.name}</span>
       </nav>
 
-      <div className="mt-8 grid gap-10 lg:grid-cols-2 lg:gap-16">
+      <div className="mt-6 grid gap-8 md:mt-8 lg:grid-cols-2 lg:gap-14">
         {/* gallery */}
-        <div className="overflow-hidden rounded-lg ring-1 ring-inset ring-ink/5">
+        <div className="overflow-hidden rounded-md border border-line bg-surface">
           <ProductImage
             name={product.name}
             accent={product.accent}
             category={product.category}
             image={product.image}
-            className="aspect-[4/5] w-full"
+            className="aspect-square w-full md:aspect-[4/5]"
           />
         </div>
 
         {/* details */}
         <div className="lg:py-2">
-          <p className="text-[12px] uppercase tracking-[0.22em] text-clay">{product.category}</p>
-          <h1 className="mt-2 font-display text-4xl leading-tight md:text-5xl">{product.name}</h1>
+          <p className="label-accent">{product.category} series</p>
+          <h1 className="mt-2 font-display text-3xl font-bold leading-tight text-paper md:text-5xl">
+            {product.name}
+          </h1>
           <Price
             priceCents={product.priceCents}
             compareAtCents={product.compareAtCents}
-            className="mt-4 font-display text-2xl"
+            className="mt-4 font-display text-2xl font-bold text-paper md:text-3xl"
           />
 
-          <p className="mt-6 max-w-prose leading-relaxed text-ink-soft text-pretty">
-            {product.description}
-          </p>
+          {product.shortDescription && (
+            <p className="mt-5 max-w-prose text-base leading-relaxed text-paper-soft text-pretty">
+              {product.shortDescription}
+            </p>
+          )}
 
-          <div className="mt-9">
+          <div className="mt-8 border-t border-line pt-8">
             <AddToCart product={product} />
           </div>
 
-          <p className="mt-5 text-center text-[12px] uppercase tracking-[0.12em] text-ink-soft">
-            Free shipping over $150 · 30-day returns
+          <p className="mt-5 text-center font-mono text-[10.5px] uppercase tracking-widest2 text-paper-mute">
+            Free shipping over $50 · 30-day returns
           </p>
 
           {/* accordions */}
-          <div className="mt-9 divide-y divide-line border-y border-line">
+          <div className="mt-8 divide-y divide-line border-y border-line">
             <details className="group py-4" open>
-              <summary className="flex cursor-pointer list-none items-center justify-between font-display text-lg">
+              <summary className="flex cursor-pointer list-none items-center justify-between font-display text-lg font-bold text-paper">
                 Product details
-                <span className="text-ink-soft transition-transform group-open:rotate-45">+</span>
+                <span className="font-mono text-accent transition-transform group-open:rotate-45">
+                  +
+                </span>
               </summary>
-              <ul className="mt-3 space-y-1.5 text-sm leading-relaxed text-ink-soft">
-                {product.details.map((d) => (
-                  <li key={d} className="flex gap-2">
-                    <span className="text-clay">—</span>
-                    {d}
-                  </li>
-                ))}
-              </ul>
+              {product.description && (
+                <p className="mt-3 text-sm leading-relaxed text-paper-soft text-pretty">
+                  {product.description}
+                </p>
+              )}
+              {details.length > 0 && (
+                <ul className="mt-4 space-y-2 font-mono text-[12px] uppercase tracking-widest2 text-paper-soft">
+                  {details.map((d) => (
+                    <li key={d} className="flex gap-3">
+                      <span className="text-accent">●</span>
+                      <span>{d}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </details>
             <details className="group py-4">
-              <summary className="flex cursor-pointer list-none items-center justify-between font-display text-lg">
+              <summary className="flex cursor-pointer list-none items-center justify-between font-display text-lg font-bold text-paper">
                 Shipping &amp; returns
-                <span className="text-ink-soft transition-transform group-open:rotate-45">+</span>
+                <span className="font-mono text-accent transition-transform group-open:rotate-45">
+                  +
+                </span>
               </summary>
-              <p className="mt-3 text-sm leading-relaxed text-ink-soft">
-                Orders ship within 1–2 business days, carbon-neutral. Complimentary shipping
-                over $150. Not right? Return it within 30 days for a full refund — we&apos;ll
-                even cover the label.
+              <p className="mt-3 text-sm leading-relaxed text-paper-soft">
+                Orders ship within 1–2 business days, carbon-neutral. Free shipping
+                over $50. Not right? Return it within 30 days for a full refund —
+                we&apos;ll even cover the label.
               </p>
             </details>
           </div>
@@ -113,9 +129,12 @@ export default async function ProductPage({ params }: { params: { slug: string }
 
       {/* related */}
       {related.length > 0 && (
-        <section className="mt-24">
-          <h2 className="font-display text-3xl">You may also like</h2>
-          <div className="mt-8 grid grid-cols-2 gap-x-5 gap-y-10 md:grid-cols-4">
+        <section className="mt-20 md:mt-24">
+          <p className="label-mono">Also from the rack</p>
+          <h2 className="mt-2 font-display text-3xl font-bold text-paper">
+            You may also like
+          </h2>
+          <div className="mt-8 grid grid-cols-2 gap-x-4 gap-y-8 md:grid-cols-4 md:gap-x-5 md:gap-y-10">
             {related.map((p, i) => (
               <Reveal key={p.id} delay={i * 80}>
                 <ProductCard product={p} />

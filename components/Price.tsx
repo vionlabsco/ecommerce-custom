@@ -12,9 +12,9 @@ export function Price({ priceCents, compareAtCents, className }: Props) {
   const onSale = !!compareAtCents && compareAtCents > priceCents
   return (
     <span className={cn('inline-flex items-baseline gap-2', className)}>
-      <span className={cn(onSale && 'text-clay')}>{formatPrice(priceCents)}</span>
+      <span className={cn(onSale && 'text-accent')}>{formatPrice(priceCents)}</span>
       {onSale && (
-        <span className="text-sm text-ink-soft line-through decoration-clay/50">
+        <span className="text-sm font-normal text-paper-soft line-through decoration-accent/60">
           {formatPrice(compareAtCents!)}
         </span>
       )}

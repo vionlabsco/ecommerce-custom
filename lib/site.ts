@@ -4,11 +4,11 @@
 // ──────────────────────────────────────────────────────────────────────────
 
 export const site = {
-  /** Placeholder brand — swap this one string to rebrand the whole store. */
-  brand: 'Marlowe',
-  tagline: 'Considered desk gear, built to last.',
+  /** Brand wordmark — typeset as ALL CAPS in the chrome. */
+  brand: 'VIONLABS',
+  tagline: 'Precision desk gear, engineered to last.',
   description:
-    'Marlowe makes two mouse pads properly — a tempered-glass pad and a stitched cloth pad, in square and rectangle.',
+    'Vionlabs makes precision-engineered mouse pads — a 5mm tempered-glass pad and a stitched cloth pad, each tuned for fast, controlled tracking.',
 
   /** Currency + money config. Prices throughout the app are stored in cents. */
   currency: 'USD',
@@ -21,10 +21,10 @@ export const site = {
   /** Estimated tax rate shown at checkout (display only — wire real tax later). */
   taxRate: 0.0825,
 
-  contactEmail: 'hello@marlowe.shop',
+  contactEmail: 'hello@vionlabs.co',
   social: {
     instagram: 'https://instagram.com',
-    pinterest: 'https://pinterest.com',
+    twitter: 'https://twitter.com',
   },
 } as const
 

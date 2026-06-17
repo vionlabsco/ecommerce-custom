@@ -1,9 +1,11 @@
+@import url('https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700,900&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  color-scheme: light;
+  color-scheme: dark;
 }
 
 @layer base {
@@ -11,18 +13,36 @@
     scroll-behavior: smooth;
   }
   body {
+    @apply bg-ink text-paper;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
   }
   ::selection {
-    background-color: theme('colors.clay');
-    color: theme('colors.paper');
+    background-color: theme('colors.accent');
+    color: theme('colors.ink');
   }
   /* Thin, on-brand scrollbar */
   * {
     scrollbar-width: thin;
     scrollbar-color: theme('colors.line') transparent;
+  }
+  /* Hover-only ring affordance for inputs */
+  input:focus,
+  textarea:focus,
+  select:focus {
+    outline: none;
+  }
+}
+
+@layer components {
+  /* Tiny utility: monospace tech-label */
+  .label-mono {
+    @apply font-mono text-[11px] uppercase tracking-widest2 text-paper-soft;
+  }
+  /* Tiny utility: bright accent label */
+  .label-accent {
+    @apply font-mono text-[11px] uppercase tracking-widest2 text-accent;
   }
 }
 
@@ -32,5 +52,21 @@
   }
   .text-pretty {
     text-wrap: pretty;
+  }
+  /* Subtle grid background — used on hero sections */
+  .bg-grid {
+    background-image: linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+    background-size: 56px 56px;
+  }
+  /* Diagonal stripe used as section divider */
+  .stripe-accent {
+    background-image: repeating-linear-gradient(
+      45deg,
+      theme('colors.accent') 0,
+      theme('colors.accent') 8px,
+      theme('colors.ink') 8px,
+      theme('colors.ink') 16px
+    );
   }
 }

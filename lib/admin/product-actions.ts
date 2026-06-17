@@ -1,8 +1,9 @@
 'use server'
 
 // Server actions for the Products & Categories manager. Each parses the form,
-// writes through the catalog data layer (Supabase when configured, else demo),
-// revalidates the affected pages, and redirects back to the list.
+// optionally uploads an image to Supabase Storage, writes through the catalog
+// data layer (Supabase when configured, else demo), revalidates affected pages,
+// and redirects back to the list.
 
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
@@ -15,6 +16,7 @@ import {
   type ProductDraft,
 } from '@/lib/products'
 import { setStock } from '@/lib/admin/store'
+import { supabase, isSupabaseConfigured } from '@/lib/supabase/client'
 
 function dollarsToCents(v: FormDataEntryValue | null): number {
   const n = parseFloat(String(v ?? '').replace(/[^0-9.]/g, ''))
@@ -39,8 +41,41 @@ function parseList(v: FormDataEntryValue | null, sep: string): string[] {
     .filter(Boolean)
 }
 
-function draftFromForm(fd: FormData): ProductDraft {
+/** Upload a single image to the `product-images` Supabase bucket and return
+ *  its public URL. Returns null if the file is empty or upload fails. */
+async function uploadImage(file: File | null): Promise<string | null> {
+  if (!file || !(file instanceof File) || file.size === 0) return null
+  if (!isSupabaseConfigured || !supabase) return null
+  const ext = (file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '')
+  const fileName = `${Date.now()}-${Math.random().toString(36).slice(2, 10)}.${ext}`
+  const { error } = await supabase.storage
+    .from('product-images')
+    .upload(fileName, file, { contentType: file.type, upsert: false })
+  if (error) {
+    console.error('Image upload failed:', error.message)
+    return null
+  }
+  const { data } = supabase.storage.from('product-images').getPublicUrl(fileName)
+  return data.publicUrl
+}
+
+async function draftFromForm(
+  fd: FormData,
+  existingImage?: string,
+): Promise<ProductDraft> {
   const compareRaw = String(fd.get('compareAt') ?? '').trim()
+
+  // Image priority:
+  //   1. New file uploaded → upload to Storage, use returned URL
+  //   2. URL pasted in the text input → use that
+  //   3. Existing product image → preserve
+  const imageFile = fd.get('imageFile') as File | null
+  const imageUrl = String(fd.get('image') ?? '').trim()
+  let finalImage: string | undefined = existingImage
+  if (imageUrl) finalImage = imageUrl
+  const uploaded = await uploadImage(imageFile)
+  if (uploaded) finalImage = uploaded
+
   return {
     slug: String(fd.get('slug') ?? '').trim(),
     name: String(fd.get('name') ?? '').trim(),
@@ -53,7 +88,7 @@ function draftFromForm(fd: FormData): ProductDraft {
     colors: parseColors(fd.get('colors')),
     sizes: parseList(fd.get('sizes'), ','),
     accent: String(fd.get('accent') ?? '').trim() || '#6b6f4e',
-    image: String(fd.get('image') ?? '').trim() || undefined,
+    image: finalImage || undefined,
     badge: String(fd.get('badge') ?? '').trim() || undefined,
     featured: fd.get('featured') === 'on',
     soldOut: [],
@@ -68,8 +103,8 @@ function revalidateCatalog() {
 }
 
 export async function createProductAction(fd: FormData) {
-  const draft = draftFromForm(fd)
-  if (draft.category) await createCategory(draft.category) // ensure the category exists
+  const draft = await draftFromForm(fd)
+  if (draft.category) await createCategory(draft.category)
   const product = await createProduct(draft)
   setStock(product.id, parseInt(String(fd.get('stock') ?? '0'), 10) || 0)
   revalidateCatalog()
@@ -78,7 +113,8 @@ export async function createProductAction(fd: FormData) {
 
 export async function updateProductAction(fd: FormData) {
   const id = String(fd.get('id') ?? '')
-  const draft = draftFromForm(fd)
+  const existingImage = String(fd.get('existingImage') ?? '').trim() || undefined
+  const draft = await draftFromForm(fd, existingImage)
   if (draft.category) await createCategory(draft.category)
   await updateProduct(id, draft)
   setStock(id, parseInt(String(fd.get('stock') ?? '0'), 10) || 0)

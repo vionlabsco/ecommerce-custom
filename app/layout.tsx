@@ -1,15 +1,11 @@
 import type { Metadata } from 'next'
-import { Fraunces, Hanken_Grotesk } from 'next/font/google'
+import { Inter } from 'next/font/google'
 import './globals.css'
 import { site } from '@/lib/site'
 
-const display = Fraunces({
-  subsets: ['latin'],
-  variable: '--font-display',
-  display: 'swap',
-})
-
-const body = Hanken_Grotesk({
+// Inter — body font. Satoshi (display) is loaded via Fontshare @import in
+// globals.css and referenced through Tailwind's `font-display` utility.
+const body = Inter({
   subsets: ['latin'],
   variable: '--font-body',
   display: 'swap',
@@ -25,8 +21,10 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${display.variable} ${body.variable}`}>
-      <body className="min-h-screen bg-paper font-body text-ink antialiased">{children}</body>
+    <html lang="en" className={body.variable}>
+      <body className="min-h-screen bg-ink font-body text-paper antialiased">
+        {children}
+      </body>
     </html>
   )
 }

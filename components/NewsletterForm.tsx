@@ -19,25 +19,28 @@ export function NewsletterForm() {
 
   if (done) {
     return (
-      <p className="text-sm text-paper/80">
-        ✦ You&apos;re on the list. Look out for a note soon.
+      <p className="font-mono text-[12px] uppercase tracking-widest2 text-lime">
+        ● You&apos;re on the list. Look out for a note soon.
       </p>
     )
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex max-w-sm items-center gap-2">
+    <form
+      onSubmit={handleSubmit}
+      className="flex w-full flex-col gap-2 sm:flex-row sm:items-center"
+    >
       <input
         type="email"
         required
         value={email}
         onChange={(e) => setEmail(e.target.value)}
-        placeholder="Email address"
-        className="min-w-0 flex-1 border-b border-paper/30 bg-transparent py-2 text-sm text-paper placeholder:text-paper/40 focus:border-paper focus:outline-none"
+        placeholder="you@vionlabs.co"
+        className="min-w-0 flex-1 rounded-md border border-line bg-ink px-4 py-3 font-mono text-[13px] text-paper placeholder:text-paper-mute focus:border-accent focus:outline-none"
       />
       <button
         type="submit"
-        className="shrink-0 text-[12px] uppercase tracking-[0.18em] text-paper/80 transition-colors hover:text-paper"
+        className="shrink-0 rounded-md bg-accent px-5 py-3 font-mono text-[12px] font-bold uppercase tracking-widest2 text-ink transition-colors hover:bg-accent-hover"
       >
         Subscribe
       </button>
