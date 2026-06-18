@@ -85,6 +85,15 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
+  // Pass the validated email to downstream Server Components so the admin
+  // layout doesn't have to make a second Supabase auth call (saves a network
+  // roundtrip per request — felt as nav lag on every click).
+  if (user?.email) {
+    const headers = new Headers(request.headers)
+    headers.set('x-admin-email', user.email)
+    response = NextResponse.next({ request: { headers } })
+  }
+
   // /admin/login: anonymous users see it; signed-in + allow-listed users get
   // bounced to /admin (so the login form never renders inside the admin chrome).
   if (pathname === '/admin/login') {

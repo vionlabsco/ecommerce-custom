@@ -1,10 +1,10 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { headers } from 'next/headers'
 import { AdminNav } from '@/components/admin/AdminNav'
 import { UserMenu } from '@/components/admin/UserMenu'
 import { MobileNavToggle, MobileNavDrawer } from '@/components/admin/MobileNav'
 import { site } from '@/lib/site'
-import { createAuthClient } from '@/lib/supabase/auth-server'
 
 // Admin pages always read mutable store state — never statically prerender.
 export const dynamic = 'force-dynamic'
@@ -14,13 +14,14 @@ export const metadata: Metadata = {
 }
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
-  const supabase = createAuthClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  // Middleware has already validated the session and stamped the email into a
+  // request header. Reading from headers() is local + synchronous; calling
+  // supabase.auth.getUser() again here would add ~150-400ms of network latency
+  // to every admin navigation.
+  const email = headers().get('x-admin-email')
 
   // No session → render children bare so /admin/login can paint its own chrome.
-  if (!user) return <>{children}</>
+  if (!email) return <>{children}</>
 
   return (
     // This wrapper "lifts" the admin out of the dark storefront body styling.
@@ -69,7 +70,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             {site.brand}
           </Link>
           <div className="ml-auto">
-            <UserMenu email={user.email ?? ''} />
+            <UserMenu email={email} />
           </div>
         </header>
 
