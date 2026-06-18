@@ -51,21 +51,21 @@ function revalidateTicket(id?: string) {
 export async function replyTicketAction(formData: FormData) {
   const id = String(formData.get('ticketId') ?? '')
   const body = String(formData.get('body') ?? '')
-  addTicketReply(id, body)
+  await addTicketReply(id, body)
   revalidateTicket(id)
 }
 
 export async function ticketStatusAction(formData: FormData) {
   const id = String(formData.get('ticketId') ?? '')
   const status = String(formData.get('status') ?? 'open') as TicketStatus
-  setTicketStatus(id, status)
+  await setTicketStatus(id, status)
   revalidateTicket(id)
 }
 
 export async function setStockAction(formData: FormData) {
   const productId = String(formData.get('productId') ?? '')
   const stock = Number(formData.get('stock') ?? 0)
-  setStock(productId, Number.isFinite(stock) ? stock : 0)
+  await setStock(productId, Number.isFinite(stock) ? stock : 0)
   revalidatePath('/admin')
   revalidatePath('/admin/products')
 }

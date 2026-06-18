@@ -1,15 +1,15 @@
 // ──────────────────────────────────────────────────────────────────────────
-// Admin "backend" — an in-memory data store seeded with sample data.
+// Admin "backend" — data layer for orders, customers, support tickets, and
+// inventory. When Supabase is configured (the default for any deployed
+// environment) every read/write hits Postgres; the only in-memory path left
+// is a demo fallback for running with zero env vars locally.
 //
-// This is the operational data layer for the admin back-office: orders,
-// customers, support tickets, and inventory. It's deliberately in-memory so the
-// demo runs with zero setup — the trade-off is that it RESETS when the server
-// restarts. In production this module is exactly what you'd replace with a
-// database (Supabase/Postgres): keep these function signatures, swap the bodies
-// for queries. The server actions in ./actions.ts call the mutators below.
+// Customers are derived from orders (one row per email) rather than living in
+// their own table — keeps the customer view always consistent with the actual
+// order book.
 // ──────────────────────────────────────────────────────────────────────────
 
-import { getAllProducts } from '@/lib/products'
+import { getAllProducts, setProductStock } from '@/lib/products'
 import { supabase, isSupabaseConfigured } from '@/lib/supabase/client'
 
 export type PaymentStatus = 'pending' | 'paid' | 'refunded'
@@ -238,15 +238,6 @@ const SEED_ORDERS: Order[] = [
   }),
 ]
 
-const SEED_CUSTOMERS: Customer[] = [
-  { id: 'c_1', name: 'Hannah Pereira', email: 'hannah.p@email.com', location: 'Portland, OR', ordersCount: 2, totalSpentCents: 30000, since: '2026-03-02' },
-  { id: 'c_2', name: 'Marcus Lindqvist', email: 'm.lindqvist@email.com', location: 'Brooklyn, NY', ordersCount: 1, totalSpentCents: 26521, since: '2026-05-19' },
-  { id: 'c_3', name: 'Daniel Osei', email: 'daniel.osei@email.com', location: 'Austin, TX', ordersCount: 2, totalSpentCents: 51060, since: '2026-01-28' },
-  { id: 'c_4', name: 'Sofia Marchetti', email: 'sofia.m@email.com', location: 'Chicago, IL', ordersCount: 1, totalSpentCents: 9242, since: '2026-04-11' },
-  { id: 'c_5', name: 'Yuki Tanaka', email: 'yuki.tanaka@email.com', location: 'Seattle, WA', ordersCount: 1, totalSpentCents: 18186, since: '2026-02-15' },
-  { id: 'c_6', name: 'Elena Vasquez', email: 'elena.v@email.com', location: 'Boston, MA', ordersCount: 1, totalSpentCents: 26521, since: '2026-06-09' },
-]
-
 const SEED_TICKETS: Ticket[] = [
   {
     id: 't_1',
@@ -295,25 +286,16 @@ const SEED_TICKETS: Ticket[] = [
   },
 ]
 
-// Simplified numeric inventory keyed by product id (the storefront uses
-// variant-level stock states; this is a per-product count for the demo).
-const SEED_STOCK: Record<string, number> = {
-  p_glass_pad: 40,
-  p_cloth_pad: 75,
-}
-// One shared instance across Next's per-route server bundles (single process),
-// so a storefront checkout and an admin read hit the SAME data. (In live mode
-// Supabase is that shared instance; this mirrors it for demo mode.)
+// Demo-mode store (used only when Supabase env vars are absent). One shared
+// instance across Next's per-route server bundles so a storefront checkout
+// and an admin read hit the SAME data within a single process. In live mode
+// Supabase is that shared instance.
 const _store = ((globalThis as any).__mw_store ??= {
   orders: SEED_ORDERS,
-  customers: SEED_CUSTOMERS,
   tickets: SEED_TICKETS,
-  stock: { ...SEED_STOCK },
 })
 const orders: Order[] = _store.orders
-const customers: Customer[] = _store.customers
 const tickets: Ticket[] = _store.tickets
-const stockLevels: Record<string, number> = _store.stock
 
 // ── Order ⇄ DB row mapping (Supabase mode) ───────────────────────────────
 function rowToOrder(r: any): Order {
@@ -428,13 +410,89 @@ export async function createOrder(input: NewOrderInput): Promise<Order> {
   }
   return order
 }
-export function getCustomers(): Customer[] {
-  return customers
+/** Customers are derived from the order book — one entry per email, with
+ *  totals + counts rolled up from their orders. Keeps customers always in
+ *  sync with reality (no separate seed/table to drift). */
+export async function getCustomers(): Promise<Customer[]> {
+  const all = await getOrders()
+  const byEmail = new Map<string, Customer>()
+  for (const o of all) {
+    const email = o.customer.email.toLowerCase()
+    const addr = o.shippingAddress
+    const location = [addr.city, addr.region].filter(Boolean).join(', ')
+    const existing = byEmail.get(email)
+    if (existing) {
+      existing.ordersCount += 1
+      if (o.paymentStatus === 'paid' && !o.cancelled) {
+        existing.totalSpentCents += o.totalCents
+      }
+      if (o.placedAt < existing.since) existing.since = o.placedAt
+    } else {
+      byEmail.set(email, {
+        id: `c_${email}`,
+        name: o.customer.name,
+        email: o.customer.email,
+        location,
+        ordersCount: 1,
+        totalSpentCents:
+          o.paymentStatus === 'paid' && !o.cancelled ? o.totalCents : 0,
+        since: o.placedAt,
+      })
+    }
+  }
+  return Array.from(byEmail.values()).sort((a, b) =>
+    b.totalSpentCents - a.totalSpentCents,
+  )
 }
-export function getTickets(): Ticket[] {
+
+// ── Ticket ⇄ DB row mapping ──
+function rowToTicket(r: any): Ticket {
+  return {
+    id: r.id,
+    subject: r.subject,
+    customer: r.customer,
+    orderNumber: r.order_number ?? undefined,
+    status: r.status,
+    messages: r.messages,
+    createdAt: r.created_at,
+  }
+}
+
+/** PostgREST error code raised when the table doesn't exist in the schema cache
+ *  (i.e. supabase/schema.sql hasn't been run yet). Treat that as "no rows" so
+ *  the admin shows an empty inbox instead of a 500. */
+function isMissingTableError(err: unknown): boolean {
+  return Boolean(err && typeof err === 'object' && (err as { code?: string }).code === 'PGRST205')
+}
+
+export async function getTickets(): Promise<Ticket[]> {
+  if (isSupabaseConfigured && supabase) {
+    const { data, error } = await supabase
+      .from('tickets')
+      .select('*')
+      .order('created_at', { ascending: false })
+    if (error) {
+      if (isMissingTableError(error)) return []
+      throw error
+    }
+    return (data ?? []).map(rowToTicket)
+  }
   return [...tickets].sort((a, b) => b.createdAt.localeCompare(a.createdAt))
 }
-export function getTicket(id: string): Ticket | undefined {
+
+export async function getTicket(id: string): Promise<Ticket | undefined> {
+  if (isSupabaseConfigured && supabase) {
+    const { data, error } = await supabase
+      .from('tickets')
+      .select('*')
+      .eq('id', id)
+      .maybeSingle()
+    if (error) {
+      if (isMissingTableError(error)) return undefined
+      throw error
+    }
+    return data ? rowToTicket(data) : undefined
+  }
   return tickets.find((t) => t.id === id)
 }
 
@@ -452,7 +510,7 @@ export async function getInventory(): Promise<ProductInventory[]> {
     name: p.name,
     category: p.category,
     priceCents: p.priceCents,
-    stock: stockLevels[p.id] ?? 0,
+    stock: p.stock ?? 0,
   }))
 }
 
@@ -464,7 +522,11 @@ export type DashboardStats = {
   lowStock: number
 }
 export async function getDashboardStats(): Promise<DashboardStats> {
-  const live = (await getOrders()).filter((o) => !o.cancelled)
+  const [live, allTickets, inventory] = await Promise.all([
+    getOrders().then((os) => os.filter((o) => !o.cancelled)),
+    getTickets(),
+    getInventory(),
+  ])
   return {
     revenueCents: live
       .filter((o) => o.paymentStatus === 'paid')
@@ -473,8 +535,8 @@ export async function getDashboardStats(): Promise<DashboardStats> {
     awaitingFulfilment: live.filter(
       (o) => o.paymentStatus === 'paid' && o.fulfillment.status === 'unfulfilled',
     ).length,
-    openTickets: tickets.filter((t) => t.status !== 'closed').length,
-    lowStock: Object.values(stockLevels).filter((n) => n <= 5).length,
+    openTickets: allTickets.filter((t) => t.status !== 'closed').length,
+    lowStock: inventory.filter((p) => p.stock <= 5).length,
   }
 }
 
@@ -506,19 +568,43 @@ export async function cancelOrder(id: string) {
   await persistOrder(o)
 }
 
-export function addTicketReply(id: string, body: string) {
-  const t = getTicket(id)
-  if (!t || !body.trim()) return
-  t.messages.push({ from: 'store', body: body.trim(), at: new Date().toISOString() })
-  t.status = 'pending'
-}
-
-export function setTicketStatus(id: string, status: TicketStatus) {
-  const t = getTicket(id)
+export async function addTicketReply(id: string, body: string) {
+  const trimmed = body.trim()
+  if (!trimmed) return
+  const t = await getTicket(id)
   if (!t) return
-  t.status = status
+  const messages = [
+    ...t.messages,
+    { from: 'store' as const, body: trimmed, at: new Date().toISOString() },
+  ]
+  if (isSupabaseConfigured && supabase) {
+    const { error } = await supabase
+      .from('tickets')
+      .update({ messages, status: 'pending' })
+      .eq('id', id)
+    if (error) throw error
+  } else {
+    const live = tickets.find((x) => x.id === id)
+    if (live) {
+      live.messages = messages
+      live.status = 'pending'
+    }
+  }
 }
 
-export function setStock(productId: string, stock: number) {
-  stockLevels[productId] = Math.max(0, Math.floor(stock))
+export async function setTicketStatus(id: string, status: TicketStatus) {
+  if (isSupabaseConfigured && supabase) {
+    const { error } = await supabase
+      .from('tickets')
+      .update({ status })
+      .eq('id', id)
+    if (error) throw error
+  } else {
+    const live = tickets.find((x) => x.id === id)
+    if (live) live.status = status
+  }
+}
+
+export async function setStock(productId: string, stock: number) {
+  await setProductStock(productId, Math.max(0, Math.floor(stock)))
 }

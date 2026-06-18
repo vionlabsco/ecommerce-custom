@@ -7,13 +7,13 @@ import { formatDateTime } from '@/lib/admin/format'
 import { TicketBadge } from '@/components/admin/StatusBadge'
 import { cn } from '@/lib/cn'
 
-export function generateMetadata({ params }: { params: { id: string } }): Metadata {
-  const t = getTicket(params.id)
+export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
+  const t = await getTicket(params.id)
   return { title: t ? t.subject : 'Ticket' }
 }
 
-export default function TicketPage({ params }: { params: { id: string } }) {
-  const ticket = getTicket(params.id)
+export default async function TicketPage({ params }: { params: { id: string } }) {
+  const ticket = await getTicket(params.id)
   if (!ticket) notFound()
 
   return (

@@ -56,8 +56,8 @@ export async function middleware(request: NextRequest) {
   // Non-admin paths beyond this point are storefront pages — let them through.
   if (!isAdminPath) return NextResponse.next()
 
-  // Public admin endpoints: the login page itself and the OAuth callback/signout.
-  if (pathname === '/admin/login' || pathname.startsWith('/admin/auth/')) {
+  // OAuth callback + signout always pass through untouched.
+  if (pathname.startsWith('/admin/auth/')) {
     return NextResponse.next()
   }
 
@@ -84,6 +84,15 @@ export async function middleware(request: NextRequest) {
   const {
     data: { user },
   } = await supabase.auth.getUser()
+
+  // /admin/login: anonymous users see it; signed-in + allow-listed users get
+  // bounced to /admin (so the login form never renders inside the admin chrome).
+  if (pathname === '/admin/login') {
+    if (user && isAllowedAdmin(user.email)) {
+      return NextResponse.redirect(new URL('/admin', request.url))
+    }
+    return NextResponse.next()
+  }
 
   if (!user) {
     const url = request.nextUrl.clone()

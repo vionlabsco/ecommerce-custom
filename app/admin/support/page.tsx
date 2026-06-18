@@ -15,9 +15,10 @@ const FILTERS = [
   { key: 'closed', label: 'Closed' },
 ] as const
 
-export default function SupportPage({ searchParams }: { searchParams: { status?: string } }) {
+export default async function SupportPage({ searchParams }: { searchParams: { status?: string } }) {
   const active = FILTERS.some((f) => f.key === searchParams.status) ? searchParams.status! : 'all'
-  const tickets = getTickets().filter((t: Ticket) => active === 'all' || t.status === active)
+  const all = await getTickets()
+  const tickets = all.filter((t: Ticket) => active === 'all' || t.status === active)
 
   return (
     <>

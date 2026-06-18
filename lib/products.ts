@@ -46,6 +46,8 @@ export type Product = {
   soldOut?: string[]
   /** Variants that are nearly gone ("Only a few left"), keyed `${colorName}/${size}`. */
   lowStock?: string[]
+  /** On-hand count (per product, not per variant). Drives the admin Products table. */
+  stock?: number
 }
 
 export const PRODUCTS: Product[] = [
@@ -72,6 +74,7 @@ export const PRODUCTS: Product[] = [
     accent: '#5b6b73',
     badge: 'New',
     featured: true,
+    stock: 40,
   },
   {
     id: 'p_cloth_pad',
@@ -96,6 +99,7 @@ export const PRODUCTS: Product[] = [
     sizes: ['Square', 'Rectangle'],
     accent: '#2c2c2c',
     featured: true,
+    stock: 75,
   },
 ]
 
@@ -129,6 +133,7 @@ function rowToProduct(r: any): Product {
     featured: r.featured ?? false,
     soldOut: r.sold_out ?? [],
     lowStock: r.low_stock ?? [],
+    stock: typeof r.stock === 'number' ? r.stock : 0,
   }
 }
 
@@ -151,6 +156,7 @@ function productToRow(p: Product) {
     featured: p.featured ?? false,
     sold_out: p.soldOut ?? [],
     low_stock: p.lowStock ?? [],
+    stock: p.stock ?? 0,
   }
 }
 
@@ -241,6 +247,17 @@ export async function updateProduct(id: string, draft: ProductDraft): Promise<vo
   } else {
     const i = _catalog.products.findIndex((p: Product) => p.id === id)
     if (i >= 0) _catalog.products[i] = product
+  }
+}
+
+export async function setProductStock(id: string, stock: number): Promise<void> {
+  const clean = Math.max(0, Math.floor(stock))
+  if (isSupabaseConfigured && supabase) {
+    const { error } = await supabase.from('products').update({ stock: clean }).eq('id', id)
+    if (error) throw error
+  } else {
+    const p = _catalog.products.find((x: Product) => x.id === id)
+    if (p) p.stock = clean
   }
 }
 

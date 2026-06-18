@@ -6,8 +6,8 @@ import { PageHeader } from '@/components/admin/PageHeader'
 
 export const metadata: Metadata = { title: 'Customers' }
 
-export default function CustomersPage() {
-  const customers = getCustomers()
+export default async function CustomersPage() {
+  const customers = await getCustomers()
 
   return (
     <>

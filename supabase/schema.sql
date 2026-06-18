@@ -82,6 +82,67 @@ insert into categories (id, name, position) values
   ('cloth', 'Cloth', 1)
 on conflict (id) do nothing;
 
+-- ── Tickets (support inbox) ─────────────────────────────────────────────────
+-- Admin's support page reads/writes this. `customer` is JSONB to mirror the
+-- app's Ticket type ({ name, email }); `messages` is a JSONB array of
+-- { from: 'customer'|'store', body, at }.
+
+create table if not exists tickets (
+  id           text primary key,
+  subject      text not null,
+  customer     jsonb not null,                       -- { name, email }
+  order_number text,
+  status       text not null default 'open',        -- open | pending | closed
+  messages     jsonb not null default '[]'::jsonb,
+  created_at   timestamptz not null default now()
+);
+
+create index if not exists tickets_created_at_idx on tickets (created_at desc);
+create index if not exists tickets_status_idx     on tickets (status);
+
+alter table tickets enable row level security;
+
+-- ── Site settings (single row, id = 1) ──────────────────────────────────────
+-- Store profile, money config, social handles, and tracking-pixel IDs. The
+-- storefront reads pixel IDs to inject tracking scripts; admin reads it to
+-- populate the Settings form. Only one row ever exists.
+
+create table if not exists site_settings (
+  id                              integer primary key default 1,
+  store_name                      text    not null default 'Vionlabs',
+  store_tagline                   text    not null default 'Precision desk gear, engineered to last.',
+  store_description               text    not null default '',
+  contact_email                   text    not null default 'info@vionlabs.co',
+  contact_phone                   text    not null default '',
+  address_line1                   text    not null default '',
+  address_city                    text    not null default '',
+  address_region                  text    not null default '',
+  address_postal                  text    not null default '',
+  address_country                 text    not null default '',
+  currency                        text    not null default 'USD',
+  locale                          text    not null default 'en-US',
+  free_shipping_threshold_cents   integer not null default 5000,
+  flat_shipping_cents             integer not null default 800,
+  tax_rate                        numeric not null default 0.0825,
+  social_instagram                text    not null default '',
+  social_twitter                  text    not null default '',
+  social_facebook                 text    not null default '',
+  social_tiktok                   text    not null default '',
+  clarity_project_id              text    not null default '',
+  ga4_measurement_id              text    not null default '',
+  meta_pixel_id                   text    not null default '',
+  tiktok_pixel_id                 text    not null default '',
+  gtm_container_id                text    not null default '',
+  hotjar_site_id                  text    not null default '',
+  updated_at                      timestamptz not null default now(),
+  constraint site_settings_singleton check (id = 1)
+);
+
+alter table site_settings enable row level security;
+
+-- Seed the single row so updateSettings() can UPDATE WHERE id = 1.
+insert into site_settings (id) values (1) on conflict (id) do nothing;
+
 insert into products
   (id, slug, name, category, price_cents, short_description, description, details, colors, sizes, accent, badge, featured, stock)
 values

@@ -28,3 +28,7 @@ yarn-error.log*
 next-env.d.ts
 
 .vercel
+
+# Playwright + local audit screenshots
+.playwright-mcp/
+audit-*.png

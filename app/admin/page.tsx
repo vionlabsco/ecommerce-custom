@@ -8,12 +8,13 @@ import { MetricCard } from '@/components/admin/MetricCard'
 import { PaymentBadge, FulfilmentBadge, TicketBadge } from '@/components/admin/StatusBadge'
 
 export default async function AdminDashboard() {
-  const stats = await getDashboardStats()
-  const orders = await getOrders()
+  const [stats, orders, allTickets] = await Promise.all([
+    getDashboardStats(),
+    getOrders(),
+    getTickets(),
+  ])
   const recent = orders.slice(0, 6)
-  const openTickets = getTickets()
-    .filter((t) => t.status !== 'closed')
-    .slice(0, 4)
+  const openTickets = allTickets.filter((t) => t.status !== 'closed').slice(0, 4)
 
   // Simple AOV from the orders we have (placeholder until real analytics ship).
   const paid = orders.filter((o) => o.paymentStatus === 'paid')

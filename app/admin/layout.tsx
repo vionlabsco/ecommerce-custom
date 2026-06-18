@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { AdminNav } from '@/components/admin/AdminNav'
 import { UserMenu } from '@/components/admin/UserMenu'
+import { MobileNavToggle, MobileNavDrawer } from '@/components/admin/MobileNav'
 import { site } from '@/lib/site'
 import { createAuthClient } from '@/lib/supabase/auth-server'
 
@@ -25,7 +26,8 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     // This wrapper "lifts" the admin out of the dark storefront body styling.
     // Everything inside is Polaris-light: gray-50 page background, white cards.
     <div className="min-h-screen bg-gray-50 font-body text-gray-900">
-      {/* Sidebar — fixed on desktop, hidden on mobile (revisit with hamburger later) */}
+      {/* Sidebar — fixed on desktop. Hidden on mobile; mobile users get the
+          slide-over drawer via the MobileNav hamburger in the top bar. */}
       <aside className="fixed inset-y-0 left-0 z-20 hidden w-60 flex-col border-r border-gray-200 bg-[#fbfbfb] md:flex">
         <div className="flex h-14 items-center border-b border-gray-200 px-4">
           <Link
@@ -51,32 +53,21 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         </div>
       </aside>
 
+      {/* Mobile slide-over: shares AdminNav, opens via MobileNavToggle below. */}
+      <MobileNavDrawer brand={site.brand}>
+        <AdminNav />
+      </MobileNavDrawer>
+
       <div className="flex min-h-screen flex-col md:pl-60">
-        {/* Top bar — search + user menu */}
+        {/* Top bar — hamburger (mobile) + brand mark (mobile) + user menu */}
         <header className="sticky top-0 z-10 flex h-14 items-center gap-3 border-b border-gray-200 bg-white px-4 md:px-6">
-          <div className="flex flex-1 items-center md:max-w-md">
-            <div className="relative w-full">
-              <svg
-                className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400"
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                aria-hidden
-              >
-                <circle cx="11" cy="11" r="7" />
-                <path d="m21 21-4.3-4.3" />
-              </svg>
-              <input
-                type="search"
-                placeholder="Search orders, products, customers…"
-                className="w-full rounded-md border border-gray-200 bg-gray-50 py-1.5 pl-8 pr-3 text-[13px] text-gray-900 placeholder:text-gray-400 focus:border-gray-300 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-200"
-              />
-            </div>
-          </div>
+          <MobileNavToggle />
+          <Link
+            href="/admin"
+            className="font-display text-base font-bold tracking-tight text-gray-900 md:hidden"
+          >
+            {site.brand}
+          </Link>
           <div className="ml-auto">
             <UserMenu email={user.email ?? ''} />
           </div>

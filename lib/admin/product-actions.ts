@@ -15,7 +15,6 @@ import {
   deleteCategory,
   type ProductDraft,
 } from '@/lib/products'
-import { setStock } from '@/lib/admin/store'
 import { supabase, isSupabaseConfigured } from '@/lib/supabase/client'
 
 function dollarsToCents(v: FormDataEntryValue | null): number {
@@ -105,8 +104,8 @@ function revalidateCatalog() {
 export async function createProductAction(fd: FormData) {
   const draft = await draftFromForm(fd)
   if (draft.category) await createCategory(draft.category)
-  const product = await createProduct(draft)
-  setStock(product.id, parseInt(String(fd.get('stock') ?? '0'), 10) || 0)
+  const stock = parseInt(String(fd.get('stock') ?? '0'), 10) || 0
+  await createProduct({ ...draft, stock })
   revalidateCatalog()
   redirect('/admin/products')
 }
@@ -116,8 +115,8 @@ export async function updateProductAction(fd: FormData) {
   const existingImage = String(fd.get('existingImage') ?? '').trim() || undefined
   const draft = await draftFromForm(fd, existingImage)
   if (draft.category) await createCategory(draft.category)
-  await updateProduct(id, draft)
-  setStock(id, parseInt(String(fd.get('stock') ?? '0'), 10) || 0)
+  const stock = parseInt(String(fd.get('stock') ?? '0'), 10) || 0
+  await updateProduct(id, { ...draft, stock })
   revalidateCatalog()
   redirect('/admin/products')
 }
