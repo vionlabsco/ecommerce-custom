@@ -6,6 +6,7 @@ import { AddToCart } from '@/components/AddToCart'
 import { ProductCard } from '@/components/ProductCard'
 import { Price } from '@/components/Price'
 import { Reveal } from '@/components/Reveal'
+import { WishlistButton } from '@/components/WishlistButton'
 import { getProductBySlug, getRelatedProducts } from '@/lib/products'
 
 export const revalidate = 60
@@ -65,11 +66,14 @@ export default async function ProductPage({ params }: { params: { slug: string }
           <h1 className="mt-2 font-display text-3xl font-bold leading-tight text-ink md:text-5xl">
             {product.name}
           </h1>
-          <Price
-            priceCents={product.priceCents}
-            compareAtCents={product.compareAtCents}
-            className="mt-4 font-display text-2xl font-bold text-ink md:text-3xl"
-          />
+          <div className="mt-4 flex items-center justify-between gap-3">
+            <Price
+              priceCents={product.priceCents}
+              compareAtCents={product.compareAtCents}
+              className="font-display text-2xl font-bold text-ink md:text-3xl"
+            />
+            <WishlistButton slug={product.slug} variant="pdp" />
+          </div>
 
           {product.shortDescription && (
             <p className="mt-5 max-w-prose text-base leading-relaxed text-ink-soft text-pretty">

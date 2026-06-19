@@ -5,6 +5,7 @@ import { CartDrawer } from '@/components/CartDrawer'
 import { TrackingScripts } from '@/components/TrackingScripts'
 import { SizeGuideModal } from '@/components/SizeGuideModal'
 import { SearchOverlay } from '@/components/SearchBar'
+import { CookieConsent } from '@/components/CookieConsent'
 
 export default function StoreLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -19,9 +20,12 @@ export default function StoreLayout({ children }: { children: React.ReactNode })
       {/* Mounted once at the layout level — triggered via a `open-size-guide`
           window event from any "Size guide" button on a PDP. */}
       <SizeGuideModal />
-      {/* Tracking pixels — admin-configured via /admin/apps. Only injected on
-          storefront pages, never on /admin/*. */}
+      {/* Tracking pixels — admin-configured via /admin/apps. Gated by the
+          cookie-consent banner: scripts only inject if analytics consent
+          has been granted. */}
       <TrackingScripts />
+      {/* GDPR / PIPEDA consent banner — shows once until decided. */}
+      <CookieConsent />
     </CartProvider>
   )
 }

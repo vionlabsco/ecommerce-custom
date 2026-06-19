@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { ProductImage } from './ProductImage'
 import { Price } from './Price'
+import { WishlistButton } from './WishlistButton'
 import { isProductAvailable, type Product } from '@/lib/products'
 
 export function ProductCard({ product }: { product: Product }) {
@@ -30,6 +31,11 @@ export function ProductCard({ product }: { product: Product }) {
               Sale
             </span>
           )}
+        </div>
+
+        {/* wishlist heart — opt-out of the parent Link's navigation */}
+        <div className="absolute right-3 top-3">
+          <WishlistButton slug={product.slug} variant="card" />
         </div>
 
         {!available && (

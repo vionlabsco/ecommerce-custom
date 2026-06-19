@@ -10,6 +10,18 @@ recent entry so support knows which version you're on.
 
 ## 2026-06-20
 
+### feat — Wishlist
+- Heart icon on every product card (top-right) and on the PDP (next to the price). Tap once to save, again to remove.
+- Persists in localStorage (`vionlabs-wishlist-v1`) — works for guests and signed-in customers alike. No login required to save.
+- Signed-in customers see saved items at `/account/wishlist` (linked from the dashboard). The page client-fetches fresh product data for each saved slug so prices + images stay current.
+- New API endpoint: `POST /api/products/by-slugs` returns matching products in request order.
+
+### feat — Cookie consent banner (PIPEDA / GDPR)
+- Bottom-anchored consent banner appears once per browser; choices persist in localStorage so it never reappears.
+- Two buttons: **Accept all** (analytics on) and **Necessary only** (analytics off).
+- TrackingScripts split into a server component (validates pixel IDs against strict regexes — XSS guard stays server-side) and a client wrapper that only injects the actual `<script>` tags once analytics consent is granted. With no consent, zero pixel scripts touch the DOM.
+- Same-tab and cross-tab consent changes sync via the `storage` event.
+
 ### feat — Customer accounts + order history
 - **Signup / sign in** at `/account/signup` and `/account/login`. Email + password via Supabase Auth (separate from the admin allowlist — anyone can create a customer account, but only ADMIN_ALLOWED_EMAILS can reach the admin).
 - **Dashboard** at `/account` shows the customer's order history: list of orders with status pills (Processing / Shipped / Cancelled / Payment pending), date, item count, total.

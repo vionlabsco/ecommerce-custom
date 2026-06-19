@@ -13,6 +13,7 @@ import { CartDrawer } from '@/components/CartDrawer'
 import { TrackingScripts } from '@/components/TrackingScripts'
 import { SizeGuideModal } from '@/components/SizeGuideModal'
 import { SearchOverlay } from '@/components/SearchBar'
+import { CookieConsent } from '@/components/CookieConsent'
 
 export const dynamic = 'force-dynamic'
 
@@ -26,6 +27,7 @@ export default function AccountLayout({ children }: { children: React.ReactNode 
       <SearchOverlay />
       <SizeGuideModal />
       <TrackingScripts />
+      <CookieConsent />
     </CartProvider>
   )
 }
