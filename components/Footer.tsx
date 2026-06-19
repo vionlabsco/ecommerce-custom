@@ -14,19 +14,18 @@ const COLUMNS = [
   {
     title: 'Support',
     links: [
-      { label: 'Shipping & returns', href: '#' },
-      { label: 'Warranty', href: '#' },
-      { label: 'Spec sheet', href: '#' },
-      { label: 'Contact', href: '#' },
+      { label: 'Shipping & returns', href: '/pages/shipping-returns' },
+      { label: 'Warranty', href: '/pages/warranty' },
+      { label: 'Spec sheet', href: '/pages/specs' },
+      { label: 'Contact', href: '/pages/contact' },
     ],
   },
   {
     title: 'Company',
     links: [
-      { label: 'About', href: '#' },
-      { label: 'Journal', href: '#' },
-      { label: 'Partners', href: '#' },
-      { label: 'Press kit', href: '#' },
+      { label: 'About', href: '/pages/about' },
+      { label: 'Privacy', href: '/pages/privacy' },
+      { label: 'Terms', href: '/pages/terms' },
     ],
   },
 ]
@@ -97,7 +96,10 @@ export function Footer() {
           <p>
             © {year} {site.brand}. All rights reserved.
           </p>
-          <p className="font-medium uppercase tracking-widest2">v1.0 · vionlabs.co</p>
+          <div className="flex flex-wrap gap-x-5 gap-y-1 font-medium uppercase tracking-widest2">
+            <Link href="/pages/privacy" className="hover:text-accent">Privacy</Link>
+            <Link href="/pages/terms" className="hover:text-accent">Terms</Link>
+          </div>
         </div>
       </div>
     </footer>

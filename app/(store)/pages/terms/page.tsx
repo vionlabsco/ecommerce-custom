@@ -1,0 +1,48 @@
+import type { Metadata } from 'next'
+
+export const metadata: Metadata = { title: 'Terms of service' }
+
+export default function TermsPage() {
+  return (
+    <>
+      <p className="label-accent">Legal</p>
+      <h1 className="font-display text-4xl font-bold text-ink md:text-5xl">
+        Terms of service
+      </h1>
+      <p className="text-[12px] text-ink-mute">
+        Placeholder — replace with finalised legal copy before launch.
+      </p>
+
+      <h2 className="mt-10 font-display text-xl font-bold text-ink">Use of the site</h2>
+      <p>
+        By using vionlabs.co you agree to these terms. You may not use the site
+        for any unlawful purpose or in any way that could disable, overburden,
+        or impair it.
+      </p>
+
+      <h2 className="mt-10 font-display text-xl font-bold text-ink">Orders & payment</h2>
+      <p>
+        Placing an order constitutes an offer to purchase. We reserve the right
+        to refuse or cancel orders at our discretion. All prices are shown in
+        USD unless otherwise noted. Sales tax is added at checkout where
+        applicable.
+      </p>
+
+      <h2 className="mt-10 font-display text-xl font-bold text-ink">Intellectual property</h2>
+      <p>
+        All content on this site — including text, images, logos, and product
+        designs — is the property of Vionlabs and protected by copyright. Do
+        not reproduce without permission.
+      </p>
+
+      <h2 className="mt-10 font-display text-xl font-bold text-ink">Limitation of liability</h2>
+      <p>
+        Vionlabs is not liable for any indirect, incidental, or consequential
+        damages arising from use of our products or this site. Our maximum
+        liability is limited to the purchase price of the affected product.
+      </p>
+
+      <p className="text-[12px] text-ink-mute">Last updated: June 2026.</p>
+    </>
+  )
+}

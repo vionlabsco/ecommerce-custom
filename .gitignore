@@ -32,3 +32,6 @@ next-env.d.ts
 # Playwright + local audit screenshots
 .playwright-mcp/
 audit-*.png
+store-*.png
+white-*.png
+prod-*.png

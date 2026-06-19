@@ -30,9 +30,12 @@ create table if not exists orders (
 create index if not exists orders_placed_at_idx on orders (placed_at desc);
 
 -- Row-level security: the app talks to Supabase with the service-role key from
--- the server, which bypasses RLS. Enable RLS so nothing is readable with the
--- public anon key by accident.
+-- the server, which bypasses RLS. Enable RLS + explicit deny-all so that if
+-- the anon key is ever accidentally used (e.g. from the browser), every read
+-- and write fails loudly instead of silently leaking data.
 alter table orders enable row level security;
+drop policy if exists "deny_all" on orders;
+create policy "deny_all" on orders for all to public using (false) with check (false);
 
 -- ── Catalog: categories + products ──────────────────────────────────────────
 -- The storefront reads products from here (falling back to the bundled demo
@@ -73,7 +76,12 @@ create index if not exists products_category_idx on products (category);
 create index if not exists products_slug_idx on products (slug);
 
 alter table categories enable row level security;
+drop policy if exists "deny_all" on categories;
+create policy "deny_all" on categories for all to public using (false) with check (false);
+
 alter table products enable row level security;
+drop policy if exists "deny_all" on products;
+create policy "deny_all" on products for all to public using (false) with check (false);
 
 -- ── Seed: starter catalog (your two mouse pads) ─────────────────────────────
 -- Safe to re-run — existing rows are left untouched.
@@ -101,6 +109,8 @@ create index if not exists tickets_created_at_idx on tickets (created_at desc);
 create index if not exists tickets_status_idx     on tickets (status);
 
 alter table tickets enable row level security;
+drop policy if exists "deny_all" on tickets;
+create policy "deny_all" on tickets for all to public using (false) with check (false);
 
 -- ── Site settings (single row, id = 1) ──────────────────────────────────────
 -- Store profile, money config, social handles, and tracking-pixel IDs. The
@@ -139,9 +149,27 @@ create table if not exists site_settings (
 );
 
 alter table site_settings enable row level security;
+drop policy if exists "deny_all" on site_settings;
+create policy "deny_all" on site_settings for all to public using (false) with check (false);
 
 -- Seed the single row so updateSettings() can UPDATE WHERE id = 1.
 insert into site_settings (id) values (1) on conflict (id) do nothing;
+
+-- ── Newsletter subscribers ─────────────────────────────────────────────────
+-- Captures emails from the storefront footer newsletter form. Unique on the
+-- normalised (lower-cased) email so the same address can't be double-saved.
+
+create table if not exists newsletter_subscribers (
+  email          text primary key,
+  subscribed_at  timestamptz not null default now(),
+  source         text not null default 'footer',
+  user_agent     text,
+  ip             text
+);
+
+alter table newsletter_subscribers enable row level security;
+drop policy if exists "deny_all" on newsletter_subscribers;
+create policy "deny_all" on newsletter_subscribers for all to public using (false) with check (false);
 
 insert into products
   (id, slug, name, category, price_cents, short_description, description, details, colors, sizes, accent, badge, featured, stock)

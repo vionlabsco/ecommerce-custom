@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, type FormEvent } from 'react'
+import { useRef, useState, type FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useCart } from './CartProvider'
@@ -20,6 +20,10 @@ export function CheckoutForm() {
   const { items, subtotalCents, clear } = useCart()
   const [method, setMethod] = useState<'standard' | 'express'>('standard')
   const [placing, setPlacing] = useState(false)
+  // Ref guards against rapid double-submit before React re-renders with the
+  // disabled button. Without it, a fast second click could fire a duplicate
+  // order before setPlacing(true) takes effect.
+  const inFlight = useRef(false)
 
   const standardShip =
     subtotalCents >= site.freeShippingThresholdCents ? 0 : site.flatShippingCents
@@ -30,6 +34,8 @@ export function CheckoutForm() {
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
     if (items.length === 0) return
+    if (inFlight.current) return
+    inFlight.current = true
     setPlacing(true)
     // Read the form synchronously before any await (the event is recycled).
     const fd = new FormData(e.currentTarget)
@@ -42,6 +48,7 @@ export function CheckoutForm() {
           email: String(fd.get('email') ?? ''),
         },
         items: items.map((i) => ({
+          productId: i.productId,
           name: i.name,
           variant: `${i.color} · ${i.size}`,
           qty: i.quantity,
@@ -59,6 +66,7 @@ export function CheckoutForm() {
       clear()
       router.push(`/checkout/success?order=${res.number}&total=${res.totalCents}`)
     } catch {
+      inFlight.current = false
       setPlacing(false)
     }
   }

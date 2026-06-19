@@ -9,8 +9,15 @@
 // order book.
 // ──────────────────────────────────────────────────────────────────────────
 
+import { randomBytes } from 'crypto'
 import { getAllProducts, setProductStock } from '@/lib/products'
 import { supabase, isSupabaseConfigured } from '@/lib/supabase/client'
+
+/** Cryptographically random alphanumeric token. Used for order IDs / numbers
+ *  so they can't be enumerated by walking sequential integers. */
+function token(bytes = 8): string {
+  return randomBytes(bytes).toString('hex').toUpperCase()
+}
 
 export type PaymentStatus = 'pending' | 'paid' | 'refunded'
 export type FulfillmentStatus = 'unfulfilled' | 'fulfilled'
@@ -366,9 +373,11 @@ export async function getOrder(id: string): Promise<Order | undefined> {
   return orders.find((o) => o.id === id)
 }
 
+export type OrderItemWithId = OrderItem & { productId?: string }
+
 export type NewOrderInput = {
   customer: { name: string; email: string }
-  items: OrderItem[]
+  items: OrderItemWithId[]
   shippingAddress: Order['shippingAddress']
   shippingCents: number
   paymentStatus?: PaymentStatus
@@ -380,12 +389,12 @@ export async function createOrder(input: NewOrderInput): Promise<Order> {
   const subtotalCents = input.items.reduce((s, i) => s + i.priceCents * i.qty, 0)
   const taxCents = Math.round(subtotalCents * TAX_RATE)
   const totalCents = subtotalCents + input.shippingCents + taxCents
-  const seq = Math.floor(100000 + Math.random() * 900000)
+  const id = token(8)
   const placedAt = new Date().toISOString()
   const paymentStatus: PaymentStatus = input.paymentStatus ?? 'paid'
   const order: Order = {
-    id: `o_${seq}`,
-    number: `MAR-${seq}`,
+    id: `o_${id}`,
+    number: `VL-${id.slice(0, 10)}`,
     placedAt,
     customer: input.customer,
     items: input.items,
@@ -408,6 +417,26 @@ export async function createOrder(input: NewOrderInput): Promise<Order> {
   } else {
     orders.unshift(order)
   }
+
+  // Decrement on-hand stock for each line item. Best-effort: if a product
+  // can't be found or update fails, we log but don't fail the whole order
+  // (the order is already persisted; under-counting stock is safer than
+  // losing the order). Real inventory accuracy requires a DB transaction
+  // — track that as future work when the cart volume warrants it.
+  const products = await getAllProducts()
+  for (const item of input.items) {
+    const p = item.productId
+      ? products.find((x) => x.id === item.productId)
+      : products.find((x) => x.name === item.name)
+    if (!p) continue
+    const next = Math.max(0, (p.stock ?? 0) - item.qty)
+    try {
+      await setProductStock(p.id, next)
+    } catch (e) {
+      console.error('Stock decrement failed for', p.id, e)
+    }
+  }
+
   return order
 }
 /** Customers are derived from the order book — one entry per email, with

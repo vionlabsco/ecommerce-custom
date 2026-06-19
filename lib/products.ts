@@ -8,7 +8,12 @@
 // Money is stored in integer CENTS to avoid floating-point rounding bugs.
 // ──────────────────────────────────────────────────────────────────────────
 
+import { randomBytes } from 'crypto'
 import { supabase, isSupabaseConfigured } from '@/lib/supabase/client'
+
+function id(): string {
+  return randomBytes(6).toString('hex')
+}
 
 export const CATEGORIES = ['Glass', 'Cloth'] as const
 
@@ -226,9 +231,9 @@ export async function getCategories(): Promise<string[]> {
 export type ProductDraft = Omit<Product, 'id'>
 
 export async function createProduct(draft: ProductDraft): Promise<Product> {
-  const seq = Math.floor(100000 + Math.random() * 900000)
-  const slug = (draft.slug && draft.slug.trim()) || slugify(draft.name) || `product-${seq}`
-  const product: Product = { ...draft, id: `p_${seq}`, slug }
+  const newId = id()
+  const slug = (draft.slug && draft.slug.trim()) || slugify(draft.name) || `product-${newId}`
+  const product: Product = { ...draft, id: `p_${newId}`, slug }
   if (isSupabaseConfigured && supabase) {
     const { error } = await supabase.from('products').insert(productToRow(product))
     if (error) throw error

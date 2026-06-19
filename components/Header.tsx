@@ -8,7 +8,7 @@ const NAV = [
   { label: 'Shop', href: '/shop' },
   { label: 'Glass', href: '/shop?category=Glass' },
   { label: 'Cloth', href: '/shop?category=Cloth' },
-  { label: 'Spec', href: '/shop' },
+  { label: 'Spec', href: '/pages/specs' },
 ]
 
 function BagIcon() {
