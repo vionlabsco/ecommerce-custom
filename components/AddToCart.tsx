@@ -8,6 +8,19 @@ import { cn } from '@/lib/cn'
 
 const MAX_BY_STATE = { 'in-stock': 8, 'low-stock': 3, 'sold-out': 0 } as const
 
+/** Decide if a hex colour is "dark" enough that a white tick reads better than
+ *  a black one. Uses YIQ luminance — accurate enough for swatch contrast. */
+function isHexDark(hex: string): boolean {
+  const h = hex.replace('#', '')
+  if (h.length !== 6 && h.length !== 3) return false
+  const exp = h.length === 3 ? h.split('').map((c) => c + c).join('') : h
+  const r = parseInt(exp.slice(0, 2), 16)
+  const g = parseInt(exp.slice(2, 4), 16)
+  const b = parseInt(exp.slice(4, 6), 16)
+  const yiq = (r * 299 + g * 587 + b * 114) / 1000
+  return yiq < 145
+}
+
 export function AddToCart({ product }: { product: Product }) {
   const { addItem } = useCart()
 
@@ -66,30 +79,57 @@ export function AddToCart({ product }: { product: Product }) {
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Colour */}
+      {/* Colour — selected swatch gets a clear visual ring + checkmark overlay
+          so the active state can't be missed against light or dark fills. */}
       {hasColors && (
         <div>
           <div className="flex items-baseline justify-between">
             <span className="label-mono">Colour</span>
-            <span className="text-[12px] text-ink">{color}</span>
+            <span className="text-[13px] font-medium text-ink">{color}</span>
           </div>
           <div className="mt-3 flex flex-wrap gap-3">
-            {colors.map((c) => (
-              <button
-                key={c.name}
-                onClick={() => setColor(c.name)}
-                aria-label={c.name}
-                aria-pressed={color === c.name}
-                title={c.name}
-                className={cn(
-                  'h-10 w-10 rounded-md border-2 transition',
-                  color === c.name
-                    ? 'border-accent ring-2 ring-accent ring-offset-2 ring-offset-paper'
-                    : 'border-line hover:border-ink-soft',
-                )}
-                style={{ backgroundColor: c.hex }}
-              />
-            ))}
+            {colors.map((c) => {
+              const selected = color === c.name
+              // Pick a contrasting check-icon colour based on swatch brightness
+              // so the tick is always readable.
+              const isDark = isHexDark(c.hex)
+              const tickColor = isDark ? '#ffffff' : '#0a0a0a'
+              return (
+                <button
+                  key={c.name}
+                  type="button"
+                  onClick={() => setColor(c.name)}
+                  aria-label={c.name}
+                  aria-pressed={selected}
+                  title={c.name}
+                  className={cn(
+                    'relative flex h-11 w-11 items-center justify-center rounded-full border-2 transition-all',
+                    selected
+                      ? 'scale-110 border-accent shadow-[0_0_0_4px_rgba(255,92,40,0.18)]'
+                      : 'border-line hover:scale-105 hover:border-ink-soft',
+                  )}
+                  style={{ backgroundColor: c.hex }}
+                >
+                  {selected && (
+                    <svg
+                      width="14"
+                      height="14"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      aria-hidden
+                    >
+                      <path
+                        d="M5 12.5l4.2 4.2L19 7"
+                        stroke={tickColor}
+                        strokeWidth="2.4"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  )}
+                </button>
+              )
+            })}
           </div>
         </div>
       )}
@@ -99,7 +139,11 @@ export function AddToCart({ product }: { product: Product }) {
         <div>
           <div className="flex items-baseline justify-between">
             <span className="label-mono">Size</span>
-            <button className="text-[11px] font-medium uppercase tracking-widest2 text-ink-soft hover:text-accent">
+            <button
+              type="button"
+              onClick={() => window.dispatchEvent(new Event('open-size-guide'))}
+              className="text-[11px] font-medium uppercase tracking-widest2 text-ink-soft hover:text-accent"
+            >
               Size guide
             </button>
           </div>

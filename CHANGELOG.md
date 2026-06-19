@@ -10,6 +10,11 @@ recent entry so support knows which version you're on.
 
 ## 2026-06-20
 
+### feat — PDP polish: clearer swatches, spec card, working size guide
+- **Colour swatches** are now larger circles with a clear scale animation + soft accent shadow on selection; a checkmark icon overlays the selected swatch (white on dark colours, black on light — YIQ contrast). The dead-end "is this selected?" question is gone.
+- **"Specs at a glance" card** above the accordion shows sizes, colours, category, warranty in a scannable 2×2 grid. Derived from existing product fields so admin edits flow through automatically — no separate spec schema needed.
+- **Size guide modal** works for the first time — clicking the "Size guide" link on the PDP opens a clean modal with Square + Rectangle dimensions in both inches and mm, plus use-case notes. ESC + click-outside + close-button + bottom-sheet on mobile.
+
 ### feat — Customer-visible tracking on the order success page + shipped email
 - Order success page (`/checkout/success`) now loads the order from Supabase and, if the admin has marked it fulfilled, shows the carrier, tracking number, and a clickable "Track your package" button that deep-links to the carrier's tracking page.
 - New `lib/tracking.ts` maps common carriers (USPS, UPS, FedEx, DHL, Canada Post, Stallion Express, Chit Chats, DPD) to their public tracking URLs. Unknown carriers fall back to plain text.

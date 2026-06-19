@@ -85,6 +85,36 @@ export default async function ProductPage({ params }: { params: { slug: string }
             Free shipping over $50 · 30-day returns
           </p>
 
+          {/* At-a-glance spec card — derived from product fields so it stays
+              in sync with admin edits without needing a separate spec schema. */}
+          <div className="mt-8 overflow-hidden rounded-lg border border-line bg-card">
+            <p className="border-b border-line bg-surface px-5 py-2.5 text-[10.5px] font-semibold uppercase tracking-widest2 text-ink-soft">
+              Specs at a glance
+            </p>
+            <dl className="grid grid-cols-1 divide-y divide-line text-sm sm:grid-cols-2 sm:divide-x sm:divide-y-0">
+              <div className="px-5 py-3 sm:py-4">
+                <dt className="text-[10.5px] font-medium uppercase tracking-widest2 text-ink-soft">Sizes</dt>
+                <dd className="mt-1 font-medium text-ink">{product.sizes?.join(' · ') || '—'}</dd>
+              </div>
+              <div className="px-5 py-3 sm:py-4">
+                <dt className="text-[10.5px] font-medium uppercase tracking-widest2 text-ink-soft">Colours</dt>
+                <dd className="mt-1 font-medium text-ink">
+                  {(product.colors ?? []).map((c) => c.name).join(' · ') || '—'}
+                </dd>
+              </div>
+              <div className="px-5 py-3 sm:py-4">
+                <dt className="text-[10.5px] font-medium uppercase tracking-widest2 text-ink-soft">Category</dt>
+                <dd className="mt-1 font-medium text-ink">{product.category}</dd>
+              </div>
+              <div className="px-5 py-3 sm:py-4">
+                <dt className="text-[10.5px] font-medium uppercase tracking-widest2 text-ink-soft">Warranty</dt>
+                <dd className="mt-1 font-medium text-ink">
+                  <Link href="/pages/warranty" className="hover:text-accent">1 year</Link>
+                </dd>
+              </div>
+            </dl>
+          </div>
+
           {/* accordions */}
           <div className="mt-8 divide-y divide-line border-y border-line">
             <details className="group py-4" open>
