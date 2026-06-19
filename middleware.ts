@@ -81,36 +81,55 @@ export async function middleware(request: NextRequest) {
     },
   )
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  // Verify the session locally via JWT claims (cached JWKS) instead of round-
+  // tripping to the Supabase Auth API. On asymmetric-key projects (the default
+  // for projects created in the last ~year) this is a ~5ms local crypto check
+  // instead of a ~150-400ms network call — every admin nav click felt that
+  // delay. On older symmetric-key projects this transparently falls back to a
+  // network verify, so it's never worse than getUser().
+  let userEmail: string | null = null
+  try {
+    const { data, error } = await supabase.auth.getClaims()
+    if (!error && data?.claims) {
+      const claims = data.claims as { email?: string }
+      userEmail = claims.email ?? null
+    }
+  } catch {
+    // getClaims missing or threw — fall back to getUser below.
+  }
+  if (!userEmail) {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    userEmail = user?.email ?? null
+  }
 
   // Pass the validated email to downstream Server Components so the admin
-  // layout doesn't have to make a second Supabase auth call (saves a network
-  // roundtrip per request — felt as nav lag on every click).
-  if (user?.email) {
+  // layout doesn't have to make its own auth call (already eliminated one
+  // network roundtrip per request — felt as nav lag on every click).
+  if (userEmail) {
     const headers = new Headers(request.headers)
-    headers.set('x-admin-email', user.email)
+    headers.set('x-admin-email', userEmail)
     response = NextResponse.next({ request: { headers } })
   }
 
   // /admin/login: anonymous users see it; signed-in + allow-listed users get
   // bounced to /admin (so the login form never renders inside the admin chrome).
   if (pathname === '/admin/login') {
-    if (user && isAllowedAdmin(user.email)) {
+    if (userEmail && isAllowedAdmin(userEmail)) {
       return NextResponse.redirect(new URL('/admin', request.url))
     }
     return NextResponse.next()
   }
 
-  if (!user) {
+  if (!userEmail) {
     const url = request.nextUrl.clone()
     url.pathname = '/admin/login'
     if (pathname !== '/admin') url.searchParams.set('redirect', pathname)
     return NextResponse.redirect(url)
   }
 
-  if (!isAllowedAdmin(user.email)) {
+  if (!isAllowedAdmin(userEmail)) {
     await supabase.auth.signOut()
     const url = request.nextUrl.clone()
     url.pathname = '/admin/login'
