@@ -116,10 +116,10 @@ export function AddToCart({ product }: { product: Product }) {
                   className={cn(
                     'min-w-[3.5rem] rounded-md border px-4 py-2.5 text-[12px] font-medium uppercase tracking-widest2 transition',
                     selected
-                      ? 'border-ink bg-ink text-paper'
-                      : 'border-line bg-paper text-ink hover:border-ink',
+                      ? 'border-accent bg-accent text-paper'
+                      : 'border-line bg-paper text-ink hover:border-accent hover:text-accent',
                     oos &&
-                      'cursor-not-allowed border-line bg-surface text-ink-mute line-through hover:border-line',
+                      'cursor-not-allowed border-line bg-surface text-ink-mute line-through hover:border-line hover:text-ink-mute',
                   )}
                 >
                   {s}
@@ -156,7 +156,7 @@ export function AddToCart({ product }: { product: Product }) {
           'w-full rounded-md px-6 py-4 text-[12px] font-bold uppercase tracking-widest2 transition-colors',
           disabled
             ? 'cursor-not-allowed border border-line bg-surface text-ink-mute'
-            : 'bg-ink text-paper hover:bg-accent hover:text-ink',
+            : 'bg-accent text-paper hover:bg-accent-hover',
         )}
       >
         {buttonLabel}

@@ -21,11 +21,11 @@ export default function SuccessPage({
 
   return (
     <div className="mx-auto flex max-w-xl flex-col items-center px-5 py-24 text-center md:py-32">
-      <span className="flex h-16 w-16 items-center justify-center rounded-full bg-sage/15">
+      <span className="flex h-16 w-16 items-center justify-center rounded-full bg-accent-soft">
         <svg width="30" height="30" viewBox="0 0 24 24" fill="none" aria-hidden>
           <path
             d="M5 12.5l4.2 4.2L19 7"
-            stroke="#5f6b55"
+            stroke="#ff5c28"
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -33,7 +33,7 @@ export default function SuccessPage({
         </svg>
       </span>
 
-      <p className="mt-7 text-[12px] uppercase tracking-[0.24em] text-clay">Thank you</p>
+      <p className="mt-7 text-[12px] uppercase tracking-[0.24em] text-accent">Thank you</p>
       <h1 className="mt-3 font-display text-4xl leading-tight md:text-5xl">
         Your order is confirmed
       </h1>
@@ -56,7 +56,7 @@ export default function SuccessPage({
       <div className="mt-12 grid w-full gap-4 text-left sm:grid-cols-3">
         {STEPS.map((step, i) => (
           <div key={step.t} className="rounded-lg border border-line bg-card p-5">
-            <span className="font-display text-2xl text-clay">{i + 1}</span>
+            <span className="font-display text-2xl text-accent">{i + 1}</span>
             <p className="mt-2 text-sm font-medium">{step.t}</p>
             <p className="mt-1 text-[13px] leading-relaxed text-ink-soft">{step.s}</p>
           </div>
@@ -65,7 +65,7 @@ export default function SuccessPage({
 
       <Link
         href="/shop"
-        className="mt-12 inline-block rounded-full bg-ink px-8 py-3.5 text-[13px] uppercase tracking-[0.16em] text-paper transition-colors hover:bg-clay"
+        className="mt-12 inline-block rounded-full bg-accent px-8 py-3.5 text-[13px] uppercase tracking-[0.16em] text-paper transition-colors hover:bg-accent-hover"
       >
         Continue shopping
       </Link>

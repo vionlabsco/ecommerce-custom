@@ -70,7 +70,7 @@ export function CheckoutForm() {
         <p className="mt-3 text-ink-soft">Add something before heading to checkout.</p>
         <Link
           href="/shop"
-          className="mt-6 inline-block rounded-full bg-ink px-7 py-3.5 text-[13px] uppercase tracking-[0.16em] text-paper transition-colors hover:bg-clay"
+          className="mt-6 inline-block rounded-full bg-accent px-7 py-3.5 text-[13px] uppercase tracking-[0.16em] text-paper transition-colors hover:bg-accent-hover"
         >
           Browse the shop
         </Link>
@@ -98,7 +98,7 @@ export function CheckoutForm() {
                     image={item.image}
                     className="h-20 w-16 rounded-[3px]"
                   />
-                  <span className="absolute -right-2 -top-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-ink px-1 text-[11px] text-paper">
+                  <span className="absolute -right-2 -top-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-accent px-1 text-[11px] text-paper">
                     {item.quantity}
                   </span>
                 </div>
@@ -263,7 +263,7 @@ export function CheckoutForm() {
           disabled={placing}
           className={cn(
             'w-full rounded-full px-6 py-4 text-[13px] uppercase tracking-[0.18em] transition-colors',
-            placing ? 'cursor-wait bg-ink/60 text-paper' : 'bg-ink text-paper hover:bg-clay',
+            placing ? 'cursor-wait bg-accent/60 text-paper' : 'bg-accent text-paper hover:bg-accent-hover',
           )}
         >
           {placing ? 'Placing order…' : `Place order — ${formatPrice(total)}`}

@@ -48,8 +48,8 @@ export default async function ShopPage({
               className={cn(
                 'rounded-md border px-4 py-2 text-[11px] font-medium uppercase tracking-widest2 transition-colors',
                 isActive
-                  ? 'border-ink bg-ink text-paper'
-                  : 'border-line bg-paper text-ink-soft hover:border-ink hover:text-ink',
+                  ? 'border-accent bg-accent text-paper'
+                  : 'border-line bg-paper text-ink-soft hover:border-accent hover:text-accent',
               )}
             >
               {tab.label}

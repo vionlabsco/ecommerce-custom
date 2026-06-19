@@ -59,7 +59,7 @@ export default async function HomePage() {
             >
               <Link
                 href="/shop"
-                className="inline-flex items-center gap-2 rounded-md bg-ink px-6 py-3.5 text-[12px] font-bold uppercase tracking-widest2 text-paper transition-colors hover:bg-accent hover:text-ink"
+                className="inline-flex items-center gap-2 rounded-md bg-accent px-6 py-3.5 text-[12px] font-bold uppercase tracking-widest2 text-paper transition-colors hover:bg-accent-hover"
               >
                 Shop the collection
                 <span aria-hidden>→</span>
@@ -147,32 +147,32 @@ export default async function HomePage() {
         </section>
       )}
 
-      {/* ── Manifesto band (inverted — dark for contrast) ── */}
-      <section className="border-y border-line bg-ink">
+      {/* ── Manifesto band ── */}
+      <section className="border-y border-line bg-accent-soft">
         <div className="mx-auto grid max-w-shell items-center gap-10 px-5 py-16 md:grid-cols-12 md:gap-12 md:px-8 md:py-24">
           <div className="md:col-span-7">
             <p className="text-[11px] font-semibold uppercase tracking-widest2 text-accent">
               VL//Manifesto
             </p>
-            <h2 className="mt-4 font-display text-3xl font-bold leading-[1.05] text-balance text-paper md:text-5xl">
+            <h2 className="mt-4 font-display text-3xl font-bold leading-[1.05] text-balance text-ink md:text-5xl">
               Two pads.<br />Made properly.<br />
               <span className="text-accent">Built to last.</span>
             </h2>
-            <p className="mt-6 max-w-md text-base leading-relaxed text-paper-soft text-pretty">
+            <p className="mt-6 max-w-md text-base leading-relaxed text-ink-soft text-pretty">
               We make two pads — glass and cloth — and obsess over the surface, the
               base, the stitching, the edges. That&apos;s the whole catalogue, and
               that&apos;s the point.
             </p>
             <Link
               href="/shop"
-              className="mt-8 inline-flex items-center gap-2 rounded-md border border-paper-soft px-6 py-3 text-[12px] font-bold uppercase tracking-widest2 text-paper transition-colors hover:border-accent hover:text-accent"
+              className="mt-8 inline-flex items-center gap-2 rounded-md bg-accent px-6 py-3 text-[12px] font-bold uppercase tracking-widest2 text-paper transition-colors hover:bg-accent-hover"
             >
               Shop everything
               <span aria-hidden>→</span>
             </Link>
           </div>
           <div className="md:col-span-5">
-            <div className="overflow-hidden rounded-md border border-paper-mute/40 bg-paper-mute/10">
+            <div className="overflow-hidden rounded-md border border-line bg-paper">
               <ProductImage
                 name={second.name}
                 accent={second.accent}

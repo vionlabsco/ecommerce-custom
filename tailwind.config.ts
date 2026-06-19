@@ -22,6 +22,13 @@ const config: Config = {
         accent: '#ff5c28',
         'accent-hover': '#e84a1a',
         'accent-deep': '#cc4720',
+        'accent-soft': '#fff1ec',
+        // `card` = subtle off-white for elevated surfaces (order summary, etc.)
+        card: '#fafafa',
+        // `clay` was referenced in components but never defined — kept as an
+        // alias of accent so existing markup keeps working through the
+        // light-theme migration.
+        clay: '#ff5c28',
         lime: '#65a30d',
       },
       fontFamily: {
