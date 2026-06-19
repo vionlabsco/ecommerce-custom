@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { useCart } from './CartProvider'
+import { SearchToggle } from './SearchBar'
 import { site } from '@/lib/site'
 
 const NAV = [
@@ -73,6 +74,7 @@ export function Header() {
           </Link>
 
           <div className="flex items-center justify-end gap-2">
+            <SearchToggle />
             <Link
               href="/shop"
               className="px-3 py-2 text-[11px] font-medium uppercase tracking-widest2 text-ink-soft transition-colors hover:text-ink md:hidden"

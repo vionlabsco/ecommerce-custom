@@ -215,6 +215,27 @@ export async function getRelatedProducts(product: Product, limit = 3): Promise<P
     .slice(0, limit)
 }
 
+/** Simple substring search across name + shortDescription + description +
+ *  category. Case-insensitive. Good enough for a small catalogue; swap for
+ *  Postgres full-text or Algolia once the catalogue grows past ~50 SKUs. */
+export async function searchProducts(query: string): Promise<Product[]> {
+  const q = query.trim().toLowerCase()
+  if (!q) return []
+  const all = await getAllProducts()
+  return all.filter((p) => {
+    const hay = [
+      p.name,
+      p.shortDescription ?? '',
+      p.description ?? '',
+      p.category,
+      ...(p.colors ?? []).map((c) => c.name),
+    ]
+      .join(' ')
+      .toLowerCase()
+    return hay.includes(q)
+  })
+}
+
 export async function getCategories(): Promise<string[]> {
   if (isSupabaseConfigured && supabase) {
     const { data, error } = await supabase

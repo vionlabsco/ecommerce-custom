@@ -2,7 +2,12 @@ import Link from 'next/link'
 import type { Metadata } from 'next'
 import { ProductCard } from '@/components/ProductCard'
 import { Reveal } from '@/components/Reveal'
-import { getAllProducts, getProductsByCategory, getCategories } from '@/lib/products'
+import {
+  getAllProducts,
+  getProductsByCategory,
+  getCategories,
+  searchProducts,
+} from '@/lib/products'
 import { cn } from '@/lib/cn'
 
 export const metadata: Metadata = { title: 'Shop' }
@@ -11,12 +16,23 @@ export const revalidate = 60
 export default async function ShopPage({
   searchParams,
 }: {
-  searchParams: { category?: string }
+  searchParams: { category?: string; q?: string }
 }) {
   const categories = await getCategories()
   const raw = searchParams.category
   const active = raw && categories.includes(raw) ? raw : null
-  const products = active ? await getProductsByCategory(active) : await getAllProducts()
+  const query = (searchParams.q ?? '').trim().slice(0, 120)
+
+  // Search takes precedence over category — if both come in, we search first
+  // and ignore the category filter (cleaner than intersecting two filters).
+  let products
+  if (query) {
+    products = await searchProducts(query)
+  } else if (active) {
+    products = await getProductsByCategory(active)
+  } else {
+    products = await getAllProducts()
+  }
 
   const tabs: { label: string; value: string | null }[] = [
     { label: 'All', value: null },
@@ -26,13 +42,26 @@ export default async function ShopPage({
   return (
     <div className="mx-auto max-w-shell px-5 py-10 md:px-8 md:py-16">
       <header className="max-w-2xl">
-        <p className="label-accent">The Collection</p>
+        <p className="label-accent">
+          {query ? 'Search results' : 'The Collection'}
+        </p>
         <h1 className="mt-3 font-display text-4xl font-bold leading-[1.05] text-ink md:text-5xl">
-          {active ?? 'Every surface'}
+          {query ? <>&ldquo;{query}&rdquo;</> : (active ?? 'Every surface')}
         </h1>
         <p className="mt-3 text-ink-soft">
-          {products.length} {products.length === 1 ? 'pad' : 'pads'} — engineered,
-          tested, and built to outlast.
+          {query ? (
+            <>
+              {products.length} {products.length === 1 ? 'result' : 'results'} for that search.{' '}
+              <Link href="/shop" className="text-accent hover:underline">
+                Clear search →
+              </Link>
+            </>
+          ) : (
+            <>
+              {products.length} {products.length === 1 ? 'pad' : 'pads'} — engineered,
+              tested, and built to outlast.
+            </>
+          )}
         </p>
       </header>
 
