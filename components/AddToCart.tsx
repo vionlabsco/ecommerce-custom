@@ -5,6 +5,7 @@ import { useCart } from './CartProvider'
 import { getVariantState, type Product } from '@/lib/products'
 import { formatPrice } from '@/lib/format'
 import { cn } from '@/lib/cn'
+import { BackInStockForm } from './BackInStockForm'
 
 const MAX_BY_STATE = { 'in-stock': 8, 'low-stock': 3, 'sold-out': 0 } as const
 
@@ -193,18 +194,28 @@ export function AddToCart({ product }: { product: Product }) {
         </p>
       )}
 
-      <button
-        onClick={handleAdd}
-        disabled={disabled}
-        className={cn(
-          'w-full rounded-md px-6 py-4 text-[12px] font-bold uppercase tracking-widest2 transition-colors',
-          disabled
-            ? 'cursor-not-allowed border border-line bg-surface text-ink-mute'
-            : 'bg-accent text-paper hover:bg-accent-hover',
-        )}
-      >
-        {buttonLabel}
-      </button>
+      {soldOut ? (
+        // When the selected variant is out of stock, swap the disabled "Sold
+        // out" button for a real lead-capture form. Customer gets an active
+        // way to be notified instead of a dead button.
+        <BackInStockForm
+          productId={product.id}
+          variantKey={hasSizes ? `${color}/${size}` : color || undefined}
+        />
+      ) : (
+        <button
+          onClick={handleAdd}
+          disabled={disabled}
+          className={cn(
+            'w-full rounded-md px-6 py-4 text-[12px] font-bold uppercase tracking-widest2 transition-colors',
+            disabled
+              ? 'cursor-not-allowed border border-line bg-surface text-ink-mute'
+              : 'bg-accent text-paper hover:bg-accent-hover',
+          )}
+        >
+          {buttonLabel}
+        </button>
+      )}
     </div>
   )
 }
