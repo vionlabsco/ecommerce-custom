@@ -114,9 +114,9 @@ export default async function ProductPage({ params }: { params: { slug: string }
                 <span className="text-accent transition-transform group-open:rotate-45">+</span>
               </summary>
               <p className="mt-3 text-sm leading-relaxed text-ink-soft">
-                Orders ship within 1–2 business days, carbon-neutral. Free shipping
-                over $50. Not right? Return it within 30 days for a full refund —
-                we&apos;ll even cover the label.
+                Ships from Canada within 1–2 business days to the US and Canada.
+                Free shipping over $50. Not right? Return it within 30 days for a
+                full refund — we&apos;ll even cover the label.
               </p>
             </details>
           </div>

@@ -63,10 +63,10 @@ export function Footer() {
             </p>
             <div className="mt-6 flex flex-wrap gap-2">
               <span className="rounded-md border border-line bg-paper px-2.5 py-1 text-[10px] font-medium uppercase tracking-widest2 text-ink-soft">
-                Made in EU
+                Designed in Canada
               </span>
               <span className="rounded-md border border-line bg-paper px-2.5 py-1 text-[10px] font-medium uppercase tracking-widest2 text-ink-soft">
-                Carbon-neutral ship
+                Ships to US &amp; CA
               </span>
             </div>
           </div>

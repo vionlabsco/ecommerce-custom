@@ -10,19 +10,31 @@ export default function ShippingReturnsPage() {
         Shipping & returns
       </h1>
 
-      <h2 className="mt-10 font-display text-xl font-bold text-ink">Shipping</h2>
+      <h2 className="mt-10 font-display text-xl font-bold text-ink">Where we ship</h2>
       <p>
-        We ship from the EU within 1–2 business days. Free standard shipping on
-        orders over $50 (or local equivalent). Express options are available at
-        checkout.
+        Vionlabs ships from Canada to the United States and Canada. Most orders
+        leave the warehouse within 1–2 business days. Free standard shipping on
+        US + Canadian orders over $50.
       </p>
+
+      <h3 className="mt-6 font-display text-base font-bold text-ink">Canada</h3>
       <ul className="ml-5 list-disc">
-        <li>Standard — 3–5 business days</li>
-        <li>Express — 1–2 business days</li>
+        <li>Standard (Canada Post) — 3–6 business days</li>
+        <li>Express (Canada Post Xpresspost) — 1–3 business days</li>
       </ul>
+
+      <h3 className="mt-6 font-display text-base font-bold text-ink">United States</h3>
+      <ul className="ml-5 list-disc">
+        <li>Standard (USPS / Canada Post International) — 5–10 business days</li>
+        <li>Express (UPS / FedEx) — 2–5 business days</li>
+      </ul>
+
       <p>
-        Once your order ships you&apos;ll receive a tracking link by email. If
-        the tracking page hasn&apos;t updated within 48 hours of shipment,{' '}
+        Shipping to the US clears customs as part of transit — there are no
+        surprise fees at delivery on orders under $800 USD (the de minimis
+        threshold). Once your order ships you&apos;ll receive a tracking link
+        by email. If the tracking page hasn&apos;t updated within 48 hours of
+        shipment,{' '}
         <a href="/pages/contact" className="text-accent hover:underline">
           get in touch
         </a>

@@ -8,6 +8,22 @@ recent entry so support knows which version you're on.
 
 ---
 
+## 2026-06-20
+
+### feat — Order confirmation emails (Resend)
+- Every checkout now sends a branded order-confirmation email via Resend.
+- Sending domain `send.vionlabs.co` verified (us-east-1).
+- Email template: brand mark, peach summary banner, line items with variants, totals, shipping address, customer-care contact.
+- Send is non-blocking — a slow Resend response never holds up the customer's success-page redirect.
+
+### fix — Origin copy now reflects reality (Canada operation)
+- Footer trust badges: "Made in EU" / "Carbon-neutral ship" → "Designed in Canada" / "Ships to US & CA".
+- About page: removed "small workshop in central Europe" claim; replaced with honest Canadian-origin copy.
+- Shipping & returns page: rewritten with US + Canada-specific delivery windows (Canada Post + USPS for standard; UPS/FedEx for express). Customs note added for US-bound orders under $800 USD de minimis.
+- Product page Shipping & returns accordion: dropped "carbon-neutral" claim; clarified "ships from Canada."
+
+---
+
 ## 2026-06-19
 
 ### sec — Hardened security across the stack

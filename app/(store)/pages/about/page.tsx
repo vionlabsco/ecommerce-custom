@@ -10,7 +10,7 @@ export default function AboutPage() {
         Two pads. Made properly.
       </h1>
       <p>
-        Vionlabs is a small studio building precision desk gear from the EU.
+        Vionlabs is a small Canadian studio building precision desk gear.
         We make two products — a 5mm tempered-glass pad and a stitched
         cloth pad — and we obsess over the surface, the base, the stitching,
         and the edges.
@@ -25,10 +25,11 @@ export default function AboutPage() {
         We don&apos;t do a hundred SKUs. We do two, and we do them properly.
       </p>
 
-      <h2 className="mt-10 font-display text-xl font-bold text-ink">Made in EU</h2>
+      <h2 className="mt-10 font-display text-xl font-bold text-ink">Where we ship</h2>
       <p>
-        Every pad is assembled in a small workshop in central Europe. We ship
-        carbon-neutral worldwide.
+        Designed in Canada. We ship across the United States and Canada from
+        our Canadian fulfilment partner — most orders go out within 1–2
+        business days.
       </p>
 
       <h2 className="mt-10 font-display text-xl font-bold text-ink">Stay in touch</h2>
