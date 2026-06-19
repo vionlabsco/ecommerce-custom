@@ -31,10 +31,10 @@ const PRIMARY: NavItem[] = [
   { href: '/admin/customers', label: 'Customers', icon: ICON(<path d="M16 19a4 4 0 0 0-8 0M12 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z" />) },
 ]
 
-// Marketing + Discounts are intentionally omitted until their pages are built —
-// no dead links in the sidebar. Add them back once the routes do real work.
+// Marketing is still TODO; Discounts is live now.
 const SECONDARY: NavItem[] = [
   { href: '/admin/analytics', label: 'Analytics', icon: ICON(<><path d="M3 3v18h18" /><path d="m7 14 4-4 3 3 5-6" /></>) },
+  { href: '/admin/discounts', label: 'Discounts', icon: ICON(<><path d="M9 9h.01M15 15h.01M16 8 8 16" /><circle cx="12" cy="12" r="10" /></>) },
 ]
 
 const TERTIARY: NavItem[] = [

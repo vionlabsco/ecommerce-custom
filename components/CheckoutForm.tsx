@@ -9,6 +9,7 @@ import { formatPrice } from '@/lib/format'
 import { site } from '@/lib/site'
 import { cn } from '@/lib/cn'
 import { placeOrder } from '@/lib/place-order'
+import { CouponInput } from './CouponInput'
 
 const EXPRESS_CENTS = 1800
 const inputClass =
@@ -17,7 +18,7 @@ const labelClass = 'mb-1.5 block text-[12px] uppercase tracking-[0.12em] text-in
 
 export function CheckoutForm() {
   const router = useRouter()
-  const { items, subtotalCents, clear } = useCart()
+  const { items, subtotalCents, discountCents, coupon, clear } = useCart()
   const [method, setMethod] = useState<'standard' | 'express'>('standard')
   const [placing, setPlacing] = useState(false)
   // Ref guards against rapid double-submit before React re-renders with the
@@ -25,11 +26,15 @@ export function CheckoutForm() {
   // order before setPlacing(true) takes effect.
   const inFlight = useRef(false)
 
+  // Discount applies to subtotal first; shipping + tax compute on the
+  // POST-discount amount so the customer doesn't pay tax on money they
+  // didn't actually spend (industry standard for US/CA stores).
+  const discountedSubtotal = Math.max(0, subtotalCents - discountCents)
   const standardShip =
-    subtotalCents >= site.freeShippingThresholdCents ? 0 : site.flatShippingCents
+    discountedSubtotal >= site.freeShippingThresholdCents ? 0 : site.flatShippingCents
   const shipping = method === 'express' ? EXPRESS_CENTS : standardShip
-  const tax = Math.round(subtotalCents * site.taxRate)
-  const total = subtotalCents + shipping + tax
+  const tax = Math.round(discountedSubtotal * site.taxRate)
+  const total = discountedSubtotal + shipping + tax
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -62,6 +67,8 @@ export function CheckoutForm() {
           country: String(fd.get('country') ?? ''),
         },
         shippingCents: shipping,
+        discountCode: coupon?.code ?? null,
+        discountCents: discountCents,
       })
       clear()
       router.push(`/checkout/success?order=${res.number}&total=${res.totalCents}`)
@@ -125,11 +132,22 @@ export function CheckoutForm() {
             ))}
           </ul>
 
+          {/* Coupon input — collapses to a chip when applied */}
+          <div className="mt-5 border-t border-line pt-5">
+            <CouponInput compact />
+          </div>
+
           <dl className="mt-5 space-y-2 border-t border-line pt-5 text-sm">
             <div className="flex justify-between">
               <dt className="text-ink-soft">Subtotal</dt>
               <dd>{formatPrice(subtotalCents)}</dd>
             </div>
+            {discountCents > 0 && (
+              <div className="flex justify-between">
+                <dt className="text-ink-soft">Discount{coupon ? ` · ${coupon.code}` : ''}</dt>
+                <dd className="text-accent">−{formatPrice(discountCents)}</dd>
+              </div>
+            )}
             <div className="flex justify-between">
               <dt className="text-ink-soft">Shipping</dt>
               <dd>{shipping === 0 ? 'Free' : formatPrice(shipping)}</dd>

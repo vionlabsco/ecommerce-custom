@@ -12,6 +12,7 @@
 import { randomBytes } from 'crypto'
 import { getAllProducts, setProductStock } from '@/lib/products'
 import { supabase, isSupabaseConfigured } from '@/lib/supabase/client'
+import { validateDiscountCode, incrementDiscountUse } from '@/lib/discounts'
 
 /** Cryptographically random alphanumeric token. Used for order IDs / numbers
  *  so they can't be enumerated by walking sequential integers. */
@@ -36,6 +37,10 @@ export type Order = {
   shippingCents: number
   taxCents: number
   totalCents: number
+  /** Applied discount code (uppercase), null when none. */
+  discountCode: string | null
+  /** Discount amount in cents — already subtracted from totalCents. */
+  discountCents: number
   shippingAddress: { line1: string; city: string; region: string; postal: string; country: string }
   paymentStatus: PaymentStatus
   cancelled: boolean
@@ -72,7 +77,7 @@ const FLAT_SHIP_CENTS = 800
 
 type OrderSeed = Omit<
   Order,
-  'subtotalCents' | 'shippingCents' | 'taxCents' | 'totalCents'
+  'subtotalCents' | 'shippingCents' | 'taxCents' | 'totalCents' | 'discountCode' | 'discountCents'
 >
 
 /** Compute money from items so seed totals are always internally consistent. */
@@ -81,7 +86,15 @@ function seedOrder(o: OrderSeed): Order {
   const shippingCents = subtotalCents >= FREE_SHIP_CENTS ? 0 : FLAT_SHIP_CENTS
   const taxCents = Math.round(subtotalCents * TAX_RATE)
   const totalCents = subtotalCents + shippingCents + taxCents
-  return { ...o, subtotalCents, shippingCents, taxCents, totalCents }
+  return {
+    ...o,
+    subtotalCents,
+    shippingCents,
+    taxCents,
+    totalCents,
+    discountCode: null,
+    discountCents: 0,
+  }
 }
 
 // ── Seeded data (mutable module state) ───────────────────────────────────────
@@ -316,6 +329,8 @@ function rowToOrder(r: any): Order {
     shippingCents: r.shipping_cents,
     taxCents: r.tax_cents,
     totalCents: r.total_cents,
+    discountCode: r.discount_code ?? null,
+    discountCents: r.discount_cents ?? 0,
     shippingAddress: r.shipping_address,
     paymentStatus: r.payment_status,
     cancelled: r.cancelled,
@@ -334,6 +349,8 @@ function orderToRow(o: Order) {
     shipping_cents: o.shippingCents,
     tax_cents: o.taxCents,
     total_cents: o.totalCents,
+    discount_code: o.discountCode,
+    discount_cents: o.discountCents,
     shipping_address: o.shippingAddress,
     payment_status: o.paymentStatus,
     cancelled: o.cancelled,
@@ -396,15 +413,40 @@ export type NewOrderInput = {
   items: OrderItemWithId[]
   shippingAddress: Order['shippingAddress']
   shippingCents: number
+  /** Optional applied discount code — case-insensitive, validated server-side. */
+  discountCode?: string | null
+  /** Hint of the discount amount the customer saw at checkout. The server
+   *  re-validates against the live coupon before applying, so this is just
+   *  a sanity check (we never trust client-supplied money). */
+  discountCents?: number
   paymentStatus?: PaymentStatus
 }
 
 /** Create an order from a storefront checkout — this is the storefront → admin
- *  sync: the new order lands in the same store the admin reads. */
+ *  sync: the new order lands in the same store the admin reads.
+ *
+ *  Discount: if input.discountCode is set we re-validate against the live
+ *  discount_codes table (never trust the client's discountCents). If the
+ *  code is no longer valid (expired, used-up, deactivated between cart and
+ *  checkout) the order goes through at full price — better than dropping
+ *  the order entirely. */
 export async function createOrder(input: NewOrderInput): Promise<Order> {
   const subtotalCents = input.items.reduce((s, i) => s + i.priceCents * i.qty, 0)
-  const taxCents = Math.round(subtotalCents * TAX_RATE)
-  const totalCents = subtotalCents + input.shippingCents + taxCents
+
+  // Re-validate the discount server-side. Never use input.discountCents.
+  let discountCode: string | null = null
+  let discountCents = 0
+  if (input.discountCode) {
+    const v = await validateDiscountCode(input.discountCode, subtotalCents)
+    if (v.ok) {
+      discountCode = v.code.code
+      discountCents = v.discountCents
+    }
+  }
+
+  const discountedSubtotal = Math.max(0, subtotalCents - discountCents)
+  const taxCents = Math.round(discountedSubtotal * TAX_RATE)
+  const totalCents = discountedSubtotal + input.shippingCents + taxCents
   const id = token(8)
   const placedAt = new Date().toISOString()
   const paymentStatus: PaymentStatus = input.paymentStatus ?? 'paid'
@@ -418,12 +460,15 @@ export async function createOrder(input: NewOrderInput): Promise<Order> {
     shippingCents: input.shippingCents,
     taxCents,
     totalCents,
+    discountCode,
+    discountCents,
     shippingAddress: input.shippingAddress,
     paymentStatus,
     cancelled: false,
     fulfillment: { status: 'unfulfilled' },
     timeline: [
       { at: placedAt, label: 'Order placed' },
+      ...(discountCode ? [{ at: placedAt, label: `Discount ${discountCode} applied` }] : []),
       ...(paymentStatus === 'paid' ? [{ at: placedAt, label: 'Payment captured' }] : []),
     ],
   }
@@ -432,6 +477,16 @@ export async function createOrder(input: NewOrderInput): Promise<Order> {
     if (error) throw error
   } else {
     orders.unshift(order)
+  }
+
+  // Bump the discount-code uses_count. Best-effort; failure doesn't fail
+  // the order (it just means a code might over-apply by 1 in rare races).
+  if (discountCode) {
+    try {
+      await incrementDiscountUse(discountCode)
+    } catch (e) {
+      console.error('[createOrder] increment discount use failed:', e)
+    }
   }
 
   // Decrement on-hand stock for each line item. Best-effort: if a product

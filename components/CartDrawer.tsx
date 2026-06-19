@@ -3,15 +3,31 @@
 import Link from 'next/link'
 import { useCart } from './CartProvider'
 import { ProductImage } from './ProductImage'
+import { CouponInput } from './CouponInput'
 import { formatPrice } from '@/lib/format'
 import { site } from '@/lib/site'
 import { cn } from '@/lib/cn'
 
 export function CartDrawer() {
-  const { isOpen, closeCart, items, count, subtotalCents, setQuantity, removeItem } = useCart()
+  const {
+    isOpen,
+    closeCart,
+    items,
+    count,
+    subtotalCents,
+    discountCents,
+    setQuantity,
+    removeItem,
+  } = useCart()
 
-  const remaining = site.freeShippingThresholdCents - subtotalCents
-  const progress = Math.min(100, (subtotalCents / site.freeShippingThresholdCents) * 100)
+  const cartTotalCents = Math.max(0, subtotalCents - discountCents)
+  // Free-shipping is gated on the POST-discount amount so applying a code
+  // can't sneak past the threshold (and matches what the checkout charges).
+  const remaining = site.freeShippingThresholdCents - cartTotalCents
+  const progress = Math.min(
+    100,
+    (cartTotalCents / site.freeShippingThresholdCents) * 100,
+  )
 
   return (
     <div
@@ -167,10 +183,28 @@ export function CartDrawer() {
 
             {/* footer */}
             <div className="border-t border-line bg-surface px-5 py-5 sm:px-6">
-              <div className="flex items-baseline justify-between">
-                <span className="label-mono">Subtotal</span>
+              {/* Coupon input — collapses to a chip once applied */}
+              <div className="mb-4">
+                <CouponInput compact />
+              </div>
+
+              <div className="space-y-1.5 text-sm">
+                <div className="flex items-center justify-between">
+                  <span className="text-ink-soft">Subtotal</span>
+                  <span className="text-ink">{formatPrice(subtotalCents)}</span>
+                </div>
+                {discountCents > 0 && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-ink-soft">Discount</span>
+                    <span className="text-accent">−{formatPrice(discountCents)}</span>
+                  </div>
+                )}
+              </div>
+
+              <div className="mt-3 flex items-baseline justify-between border-t border-line pt-3">
+                <span className="label-mono">Total</span>
                 <span className="font-display text-2xl font-bold text-ink">
-                  {formatPrice(subtotalCents)}
+                  {formatPrice(cartTotalCents)}
                 </span>
               </div>
               <p className="mt-1 text-[10.5px] font-medium uppercase tracking-widest2 text-ink-mute">

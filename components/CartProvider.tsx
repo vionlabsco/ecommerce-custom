@@ -31,21 +31,28 @@ export type CartItem = {
 
 type AddPayload = Omit<CartItem, 'quantity'>
 
-type State = { items: CartItem[] }
+/** Discount applied to the cart. The discountCents is the value the server
+ *  computed at apply-time; we re-validate against the current subtotal on
+ *  every render in case the user has since changed quantities. */
+export type AppliedCoupon = { code: string; discountCents: number }
+
+type State = { items: CartItem[]; coupon: AppliedCoupon | null }
 
 type Action =
-  | { type: 'HYDRATE'; items: CartItem[] }
+  | { type: 'HYDRATE'; items: CartItem[]; coupon: AppliedCoupon | null }
   | { type: 'ADD'; item: AddPayload; quantity: number }
   | { type: 'SET_QTY'; key: string; quantity: number }
   | { type: 'REMOVE'; key: string }
   | { type: 'CLEAR' }
+  | { type: 'SET_COUPON'; coupon: AppliedCoupon | null }
 
 const STORAGE_KEY = 'marlowe-cart-v1'
+const COUPON_KEY = 'marlowe-coupon-v1'
 
 function reducer(state: State, action: Action): State {
   switch (action.type) {
     case 'HYDRATE':
-      return { items: action.items }
+      return { items: action.items, coupon: action.coupon }
     case 'ADD': {
       const existing = state.items.find((i) => i.key === action.item.key)
       if (existing) {
@@ -54,19 +61,21 @@ function reducer(state: State, action: Action): State {
           existing.maxQuantity,
         )
         return {
+          ...state,
           items: state.items.map((i) =>
             i.key === action.item.key ? { ...i, quantity } : i,
           ),
         }
       }
       const quantity = Math.min(action.quantity, action.item.maxQuantity)
-      return { items: [...state.items, { ...action.item, quantity }] }
+      return { ...state, items: [...state.items, { ...action.item, quantity }] }
     }
     case 'SET_QTY': {
       if (action.quantity <= 0) {
-        return { items: state.items.filter((i) => i.key !== action.key) }
+        return { ...state, items: state.items.filter((i) => i.key !== action.key) }
       }
       return {
+        ...state,
         items: state.items.map((i) =>
           i.key === action.key
             ? { ...i, quantity: Math.min(action.quantity, i.maxQuantity) }
@@ -75,9 +84,11 @@ function reducer(state: State, action: Action): State {
       }
     }
     case 'REMOVE':
-      return { items: state.items.filter((i) => i.key !== action.key) }
+      return { ...state, items: state.items.filter((i) => i.key !== action.key) }
     case 'CLEAR':
-      return { items: [] }
+      return { items: [], coupon: null }
+    case 'SET_COUPON':
+      return { ...state, coupon: action.coupon }
     default:
       return state
   }
@@ -88,6 +99,10 @@ type CartContextValue = {
   items: CartItem[]
   count: number
   subtotalCents: number
+  /** Discount applied — cents to subtract from subtotal. 0 when no coupon. */
+  discountCents: number
+  /** The active coupon, or null. Customer UI uses this to render the chip. */
+  coupon: AppliedCoupon | null
   hydrated: boolean
   isOpen: boolean
   openCart: () => void
@@ -96,26 +111,36 @@ type CartContextValue = {
   setQuantity: (key: string, quantity: number) => void
   removeItem: (key: string) => void
   clear: () => void
+  applyCoupon: (coupon: AppliedCoupon) => void
+  removeCoupon: () => void
 }
 
 const CartContext = createContext<CartContextValue | null>(null)
 
 export function CartProvider({ children }: { children: ReactNode }) {
-  const [state, dispatch] = useReducer(reducer, { items: [] })
+  const [state, dispatch] = useReducer(reducer, { items: [], coupon: null })
   const [hydrated, setHydrated] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
 
-  // Load persisted cart once on mount.
+  // Load persisted cart + coupon once on mount.
   useEffect(() => {
+    let items: CartItem[] = []
+    let coupon: AppliedCoupon | null = null
     try {
       const raw = window.localStorage.getItem(STORAGE_KEY)
       if (raw) {
-        const items = JSON.parse(raw) as CartItem[]
-        if (Array.isArray(items)) dispatch({ type: 'HYDRATE', items })
+        const parsed = JSON.parse(raw) as CartItem[]
+        if (Array.isArray(parsed)) items = parsed
+      }
+      const couponRaw = window.localStorage.getItem(COUPON_KEY)
+      if (couponRaw) {
+        const parsed = JSON.parse(couponRaw) as AppliedCoupon
+        if (parsed && typeof parsed.code === 'string') coupon = parsed
       }
     } catch {
       // ignore malformed storage
     }
+    dispatch({ type: 'HYDRATE', items, coupon })
     setHydrated(true)
   }, [])
 
@@ -124,10 +149,15 @@ export function CartProvider({ children }: { children: ReactNode }) {
     if (!hydrated) return
     try {
       window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state.items))
+      if (state.coupon) {
+        window.localStorage.setItem(COUPON_KEY, JSON.stringify(state.coupon))
+      } else {
+        window.localStorage.removeItem(COUPON_KEY)
+      }
     } catch {
       // storage may be unavailable (private mode); fail quietly
     }
-  }, [state.items, hydrated])
+  }, [state.items, state.coupon, hydrated])
 
   // Lock body scroll while the cart drawer is open.
   useEffect(() => {
@@ -152,6 +182,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
   )
   const removeItem = useCallback((key: string) => dispatch({ type: 'REMOVE', key }), [])
   const clear = useCallback(() => dispatch({ type: 'CLEAR' }), [])
+  const applyCoupon = useCallback(
+    (coupon: AppliedCoupon) => dispatch({ type: 'SET_COUPON', coupon }),
+    [],
+  )
+  const removeCoupon = useCallback(
+    () => dispatch({ type: 'SET_COUPON', coupon: null }),
+    [],
+  )
 
   const { count, subtotalCents } = useMemo(() => {
     return state.items.reduce(
@@ -164,10 +202,21 @@ export function CartProvider({ children }: { children: ReactNode }) {
     )
   }, [state.items])
 
+  // Re-derive the discount on every render. If items have changed since the
+  // coupon was applied, we cap the discount at the (new) subtotal so a
+  // shrunken cart can't go negative. If the cart is empty we silently drop
+  // the coupon so the UI never shows a chip on an empty bag.
+  const discountCents = useMemo(() => {
+    if (!state.coupon || subtotalCents === 0) return 0
+    return Math.min(state.coupon.discountCents, subtotalCents)
+  }, [state.coupon, subtotalCents])
+
   const value: CartContextValue = {
     items: state.items,
     count,
     subtotalCents,
+    discountCents,
+    coupon: state.coupon,
     hydrated,
     isOpen,
     openCart,
@@ -176,6 +225,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setQuantity,
     removeItem,
     clear,
+    applyCoupon,
+    removeCoupon,
   }
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>

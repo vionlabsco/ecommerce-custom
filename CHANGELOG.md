@@ -10,6 +10,15 @@ recent entry so support knows which version you're on.
 
 ## 2026-06-20
 
+### feat — Discount codes end-to-end
+- **Admin** creates codes at `/admin/discounts` (re-added to the sidebar): percent or fixed-dollar value, optional min order, max uses, start/end dates. Toggle enable/disable, delete.
+- **Customers** see a "Discount code" input on the cart drawer and checkout summary. Once applied, it collapses to a chip showing the code + dollars saved, with an X to remove.
+- **Validation** is server-side on every apply (`lib/discounts.ts`) and again on order creation — the client never controls discount amounts.
+- **Order pipeline** stores `discountCode` + `discountCents` on the orders row. Discount applies to subtotal first; tax + shipping are calculated on the post-discount amount (standard US/CA practice).
+- **Order email** + the success page now show the discount line with the code that was used.
+- `uses_count` increments atomically on order creation; best-effort failure (eg. database hiccup) lets the order through rather than blocking it.
+- New migration: `supabase/migrations/20260620020000_discounts.sql` (applied).
+
 ### feat — PDP polish: clearer swatches, spec card, working size guide
 - **Colour swatches** are now larger circles with a clear scale animation + soft accent shadow on selection; a checkmark icon overlays the selected swatch (white on dark colours, black on light — YIQ contrast). The dead-end "is this selected?" question is gone.
 - **"Specs at a glance" card** above the accordion shows sizes, colours, category, warranty in a scannable 2×2 grid. Derived from existing product fields so admin edits flow through automatically — no separate spec schema needed.

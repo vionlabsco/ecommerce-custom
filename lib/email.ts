@@ -144,6 +144,7 @@ function renderOrderHtml(o: Order): string {
         <tr><td style="padding:16px 32px 0 32px;">
           <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="font-size:14px;color:#525252;">
             <tr><td style="padding:4px 0;">Subtotal</td><td style="padding:4px 0;text-align:right;font-variant-numeric:tabular-nums;">${formatPrice(o.subtotalCents)}</td></tr>
+            ${o.discountCents > 0 ? `<tr><td style="padding:4px 0;color:#ff5c28;">Discount${o.discountCode ? ` · ${escape(o.discountCode)}` : ''}</td><td style="padding:4px 0;text-align:right;font-variant-numeric:tabular-nums;color:#ff5c28;">−${formatPrice(o.discountCents)}</td></tr>` : ''}
             <tr><td style="padding:4px 0;">Shipping</td><td style="padding:4px 0;text-align:right;font-variant-numeric:tabular-nums;">${o.shippingCents === 0 ? 'Free' : formatPrice(o.shippingCents)}</td></tr>
             <tr><td style="padding:4px 0;">Estimated tax</td><td style="padding:4px 0;text-align:right;font-variant-numeric:tabular-nums;">${formatPrice(o.taxCents)}</td></tr>
             <tr><td style="padding:12px 0 4px 0;border-top:1px solid #e5e7eb;font-size:16px;font-weight:700;color:#0a0a0a;">Total</td><td style="padding:12px 0 4px 0;border-top:1px solid #e5e7eb;text-align:right;font-variant-numeric:tabular-nums;font-size:16px;font-weight:700;color:#0a0a0a;">${formatPrice(o.totalCents)}</td></tr>
@@ -194,6 +195,9 @@ function renderOrderText(o: Order): string {
     items,
     '',
     `Subtotal: ${formatPrice(o.subtotalCents)}`,
+    ...(o.discountCents > 0
+      ? [`Discount${o.discountCode ? ` (${o.discountCode})` : ''}: −${formatPrice(o.discountCents)}`]
+      : []),
     `Shipping: ${o.shippingCents === 0 ? 'Free' : formatPrice(o.shippingCents)}`,
     `Tax:      ${formatPrice(o.taxCents)}`,
     `Total:    ${formatPrice(o.totalCents)}`,
