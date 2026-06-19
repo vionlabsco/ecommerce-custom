@@ -10,6 +10,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { requireAdmin } from '@/lib/auth/admin'
+import { sendShippedNotification } from '@/lib/email'
 import {
   fulfillOrder,
   markOrderPaid,
@@ -17,6 +18,7 @@ import {
   addTicketReply,
   setTicketStatus,
   setStock,
+  getOrder,
   type TicketStatus,
 } from './store'
 
@@ -32,6 +34,17 @@ export async function fulfillOrderAction(formData: FormData) {
   const carrier = (String(formData.get('carrier') ?? '') || 'Standard').slice(0, 64)
   const tracking = String(formData.get('tracking') ?? '').slice(0, 128)
   await fulfillOrder(id, carrier, tracking)
+  // Fire the "your order shipped" email to the customer — non-blocking so a
+  // slow Resend response or delivery failure never makes the admin's
+  // "Fulfil" click look broken.
+  void (async () => {
+    try {
+      const order = await getOrder(id)
+      if (order) await sendShippedNotification(order)
+    } catch (err) {
+      console.error('[fulfillOrderAction] shipped email failed:', err)
+    }
+  })()
   revalidateOrder(id)
 }
 

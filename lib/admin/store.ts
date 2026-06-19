@@ -373,6 +373,22 @@ export async function getOrder(id: string): Promise<Order | undefined> {
   return orders.find((o) => o.id === id)
 }
 
+/** Look up an order by its public-facing number (VL-XXXXXXXX). Used by the
+ *  storefront success page so customers can revisit it via the link in their
+ *  confirmation email and see live tracking once fulfilment lands. */
+export async function getOrderByNumber(number: string): Promise<Order | undefined> {
+  if (isSupabaseConfigured && supabase) {
+    const { data, error } = await supabase
+      .from('orders')
+      .select('*')
+      .eq('number', number)
+      .maybeSingle()
+    if (error) throw error
+    return data ? rowToOrder(data) : undefined
+  }
+  return orders.find((o) => o.number === number)
+}
+
 export type OrderItemWithId = OrderItem & { productId?: string }
 
 export type NewOrderInput = {

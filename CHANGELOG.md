@@ -10,6 +10,12 @@ recent entry so support knows which version you're on.
 
 ## 2026-06-20
 
+### feat — Customer-visible tracking on the order success page + shipped email
+- Order success page (`/checkout/success`) now loads the order from Supabase and, if the admin has marked it fulfilled, shows the carrier, tracking number, and a clickable "Track your package" button that deep-links to the carrier's tracking page.
+- New `lib/tracking.ts` maps common carriers (USPS, UPS, FedEx, DHL, Canada Post, Stallion Express, Chit Chats, DPD) to their public tracking URLs. Unknown carriers fall back to plain text.
+- New `sendShippedNotification` email fires automatically when admin clicks "Fulfil" in `/admin/orders/[id]`. Templated like the order confirmation (white + peach + orange CTA), with the tracking link front-and-centre.
+- Customers can also revisit `/checkout/success?order=VL-...` from the email link any time to see live tracking status.
+
 ### feat — Order confirmation emails (Resend)
 - Every checkout now sends a branded order-confirmation email via Resend.
 - Sending domain `send.vionlabs.co` verified (us-east-1).
