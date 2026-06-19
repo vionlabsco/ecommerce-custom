@@ -9,7 +9,10 @@ import { formatPrice } from '@/lib/format'
 import { site } from '@/lib/site'
 import { cn } from '@/lib/cn'
 import { placeOrder } from '@/lib/place-order'
-import { CouponInput } from './CouponInput'
+// CouponInput exists but isn't shown to customers right now — discount
+// codes are wired end-to-end (admin + order pipeline) but not promoted.
+// Re-add `<CouponInput compact />` in the summary block when ready.
+// import { CouponInput } from './CouponInput'
 
 const EXPRESS_CENTS = 1800
 const inputClass =
@@ -132,10 +135,8 @@ export function CheckoutForm() {
             ))}
           </ul>
 
-          {/* Coupon input — collapses to a chip when applied */}
-          <div className="mt-5 border-t border-line pt-5">
-            <CouponInput compact />
-          </div>
+          {/* Coupon input intentionally hidden — totals still show a
+              discount line when an admin-applied discount exists. */}
 
           <dl className="mt-5 space-y-2 border-t border-line pt-5 text-sm">
             <div className="flex justify-between">

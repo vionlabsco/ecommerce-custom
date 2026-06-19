@@ -3,7 +3,11 @@
 import Link from 'next/link'
 import { useCart } from './CartProvider'
 import { ProductImage } from './ProductImage'
-import { CouponInput } from './CouponInput'
+// CouponInput exists and is mountable but is intentionally NOT rendered
+// here right now — discount codes are an admin tool that's wired end-to-end
+// but isn't being promoted to customers yet. Re-add `<CouponInput compact />`
+// in the footer block below when ready.
+// import { CouponInput } from './CouponInput'
 import { formatPrice } from '@/lib/format'
 import { site } from '@/lib/site'
 import { cn } from '@/lib/cn'
@@ -183,10 +187,8 @@ export function CartDrawer() {
 
             {/* footer */}
             <div className="border-t border-line bg-surface px-5 py-5 sm:px-6">
-              {/* Coupon input — collapses to a chip once applied */}
-              <div className="mb-4">
-                <CouponInput compact />
-              </div>
+              {/* Coupon input intentionally hidden for now — keep the
+                  totals block but no input form visible to customers. */}
 
               <div className="space-y-1.5 text-sm">
                 <div className="flex items-center justify-between">

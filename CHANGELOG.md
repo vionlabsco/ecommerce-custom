@@ -10,6 +10,11 @@ recent entry so support knows which version you're on.
 
 ## 2026-06-20
 
+### chore — Hide discount-code input from customers (admin + schema kept)
+- The discount-code feature is wired end-to-end (`/admin/discounts`, schema, order pipeline, email) but not shown to customers right now.
+- `CouponInput` mounts removed from the cart drawer footer and the checkout summary. Imports left as commented-out one-liners so re-enabling is a 2-line uncomment when ready.
+- Admin page, server actions, `discount_codes` table, and `orders.discount_code` / `orders.discount_cents` columns all stay. Existing applied discounts (if any) still flow through totals.
+
 ### feat — Wishlist
 - Heart icon on every product card (top-right) and on the PDP (next to the price). Tap once to save, again to remove.
 - Persists in localStorage (`vionlabs-wishlist-v1`) — works for guests and signed-in customers alike. No login required to save.
