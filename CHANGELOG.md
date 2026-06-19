@@ -10,6 +10,14 @@ recent entry so support knows which version you're on.
 
 ## 2026-06-20
 
+### feat — Customer accounts + order history
+- **Signup / sign in** at `/account/signup` and `/account/login`. Email + password via Supabase Auth (separate from the admin allowlist — anyone can create a customer account, but only ADMIN_ALLOWED_EMAILS can reach the admin).
+- **Dashboard** at `/account` shows the customer's order history: list of orders with status pills (Processing / Shipped / Cancelled / Payment pending), date, item count, total.
+- **Order detail** at `/account/orders/[number]` shows items, totals (including the discount line when applicable), shipping address, and the live tracking block when fulfilled. A double check on customer email prevents URL guessing across accounts.
+- **Header gains an Account icon** (silhouette) next to the cart, visible on both desktop and mobile.
+- **Middleware** now gates `/account/*` behind sign-in (login, signup, and auth callbacks are public). Signed-in customers visiting `/account/login` get bounced to `/account`.
+- **Order matching** is by email — guest orders placed before someone signs up automatically appear in their dashboard once they create an account with the same address.
+
 ### feat — Discount codes end-to-end
 - **Admin** creates codes at `/admin/discounts` (re-added to the sidebar): percent or fixed-dollar value, optional min order, max uses, start/end dates. Toggle enable/disable, delete.
 - **Customers** see a "Discount code" input on the cart drawer and checkout summary. Once applied, it collapses to a chip showing the code + dollars saved, with an X to remove.

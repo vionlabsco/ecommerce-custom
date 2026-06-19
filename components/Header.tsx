@@ -76,6 +76,17 @@ export function Header() {
           <div className="flex items-center justify-end gap-2">
             <SearchToggle />
             <Link
+              href="/account"
+              aria-label="Your account"
+              className="hidden h-9 w-9 items-center justify-center rounded-md border border-line bg-paper text-ink-soft transition-colors hover:border-accent hover:text-accent sm:inline-flex md:h-auto md:w-auto md:gap-2 md:border-0 md:px-2 md:py-1.5 md:text-[11px] md:font-medium md:uppercase md:tracking-widest2"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
+                <circle cx="12" cy="8" r="4" stroke="currentColor" strokeWidth="1.8" />
+                <path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8" stroke="currentColor" strokeWidth="1.8" />
+              </svg>
+              <span className="hidden md:inline">Account</span>
+            </Link>
+            <Link
               href="/shop"
               className="px-3 py-2 text-[11px] font-medium uppercase tracking-widest2 text-ink-soft transition-colors hover:text-ink md:hidden"
             >

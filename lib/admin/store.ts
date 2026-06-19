@@ -390,6 +390,30 @@ export async function getOrder(id: string): Promise<Order | undefined> {
   return orders.find((o) => o.id === id)
 }
 
+/** Fetch every order placed with this email. Used by the customer dashboard
+ *  at /account so signed-in users can see all their previous purchases —
+ *  including guest orders made before they signed up, as long as they used
+ *  the same email at checkout. */
+export async function getOrdersByEmail(email: string): Promise<Order[]> {
+  const normalised = email.trim().toLowerCase()
+  if (!normalised) return []
+
+  if (isSupabaseConfigured && supabase) {
+    // customer is jsonb; use the ->> operator for case-insensitive match
+    const { data, error } = await supabase
+      .from('orders')
+      .select('*')
+      .ilike('customer->>email', normalised)
+      .order('placed_at', { ascending: false })
+    if (error) {
+      console.error('[getOrdersByEmail]', error)
+      return []
+    }
+    return (data ?? []).map(rowToOrder)
+  }
+  return orders.filter((o) => o.customer.email.toLowerCase() === normalised)
+}
+
 /** Look up an order by its public-facing number (VL-XXXXXXXX). Used by the
  *  storefront success page so customers can revisit it via the link in their
  *  confirmation email and see live tracking once fulfilment lands. */
