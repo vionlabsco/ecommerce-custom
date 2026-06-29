@@ -2,7 +2,8 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { CheckoutForm } from '@/components/CheckoutForm'
 
-export const metadata: Metadata = { title: 'Checkout' }
+// no-referrer so the secure-checkout handoff leaks no referrer to the parent/processor.
+export const metadata: Metadata = { title: 'Checkout', referrer: 'no-referrer' }
 
 export default function CheckoutPage() {
   return (

@@ -73,7 +73,37 @@ export function CheckoutForm() {
         discountCode: coupon?.code ?? null,
         discountCents: discountCents,
       })
+
+      // Hand off to secure checkout to collect payment off-site. The order is
+      // already recorded above (and the confirmation email sent), so we pass
+      // only the server-computed total + billing for prefill.
+      const mres = await fetch('/api/maef/create-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          orderNumber: res.number,
+          totalCents: res.totalCents,
+          shippingLabel: method === 'express' ? 'Express' : 'Standard',
+          billing: {
+            first_name: String(fd.get('firstName') ?? ''),
+            last_name: String(fd.get('lastName') ?? ''),
+            email: String(fd.get('email') ?? ''),
+            address_1: String(fd.get('address') ?? ''),
+            address_2: String(fd.get('apt') ?? ''),
+            city: String(fd.get('city') ?? ''),
+            state: String(fd.get('region') ?? ''),
+            postcode: String(fd.get('postal') ?? ''),
+            country: 'US',
+          },
+        }),
+      })
+      const mj = await mres.json().catch(() => ({}))
       clear()
+      if (mj?.ok && mj.redirect_url) {
+        window.location.href = mj.redirect_url
+        return
+      }
+      // Fallback: secure checkout unavailable — show the confirmation we have.
       router.push(`/checkout/success?order=${res.number}&total=${res.totalCents}`)
     } catch {
       inFlight.current = false
@@ -259,28 +289,19 @@ export function CheckoutForm() {
           </div>
         </fieldset>
 
-        {/* Payment (stubbed) */}
+        {/* Payment — collected on secure checkout */}
         <fieldset>
           <legend className="flex items-center gap-3 font-display text-xl">
             Payment
-            <span className="rounded-full bg-clay/10 px-2.5 py-1 text-[10px] font-medium uppercase tracking-[0.12em] text-clay">
-              Demo — not charged
+            <span className="rounded-full bg-accent/10 px-2.5 py-1 text-[10px] font-medium uppercase tracking-[0.12em] text-accent">
+              Secure checkout
             </span>
           </legend>
-          <div className="mt-4 rounded-lg border border-dashed border-line bg-card/60 p-5">
-            <div className="grid gap-3 opacity-60">
-              <input disabled placeholder="Card number" className={inputClass} />
-              <div className="grid grid-cols-2 gap-3">
-                <input disabled placeholder="MM / YY" className={inputClass} />
-                <input disabled placeholder="CVC" className={inputClass} />
-              </div>
-            </div>
-            <p className="mt-4 text-[13px] leading-relaxed text-ink-soft">
-              Payment is intentionally stubbed for now. This is the single place to drop in{' '}
-              <span className="text-ink">Stripe Checkout</span> or{' '}
-              <span className="text-ink">Lemon Squeezy</span> — see{' '}
-              <code className="rounded bg-ink/5 px-1 py-0.5 text-[12px]">CheckoutForm.tsx</code>.
-              Placing an order below simulates a successful purchase.
+          <div className="mt-4 rounded-lg border border-line bg-card/60 p-5">
+            <p className="text-[13px] leading-relaxed text-ink-soft">
+              You&rsquo;ll enter your card on our secure checkout on the next step, over an
+              encrypted connection — card details are never stored on this site. Major
+              credit &amp; debit cards, Apple&nbsp;Pay and Google&nbsp;Pay are accepted.
             </p>
           </div>
         </fieldset>
@@ -296,7 +317,7 @@ export function CheckoutForm() {
           {placing ? 'Placing order…' : `Place order — ${formatPrice(total)}`}
         </button>
         <p className="-mt-3 text-center text-[12px] text-ink-soft">
-          By placing this order you agree to our terms. This is a demo store.
+          By placing this order you agree to our terms. You&rsquo;ll complete payment on our secure checkout.
         </p>
       </section>
     </form>
