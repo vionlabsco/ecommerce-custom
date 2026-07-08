@@ -43,10 +43,10 @@ export default async function ShopPage({
     <div className="mx-auto max-w-shell px-5 py-10 md:px-8 md:py-16">
       <header className="max-w-2xl">
         <p className="label-accent">
-          {query ? 'Search results' : 'The Collection'}
+          {query ? 'Search results' : 'Available now'}
         </p>
         <h1 className="mt-3 font-display text-4xl font-bold leading-[1.05] text-ink md:text-5xl">
-          {query ? <>&ldquo;{query}&rdquo;</> : (active ?? 'The line')}
+          {query ? <>&ldquo;{query}&rdquo;</> : (active ?? 'The formulation')}
         </h1>
         <p className="mt-3 text-ink-soft">
           {query ? (
@@ -58,8 +58,8 @@ export default async function ShopPage({
             </>
           ) : (
             <>
-              {products.length} {products.length === 1 ? 'formula' : 'formulas'} — dosed
-              for absorption, third-party tested, made to work.
+              {products.length} {products.length === 1 ? 'product' : 'products'} — pharmaceutical-grade,
+              third-party tested, non-invasive.
             </>
           )}
         </p>
@@ -89,11 +89,13 @@ export default async function ShopPage({
 
       {products.length === 0 ? (
         <div className="mt-16 rounded-md border border-line bg-surface px-6 py-16 text-center">
-          <p className="label-mono">No matches</p>
+          <p className="label-mono">Nothing to show</p>
           <p className="mt-3 font-display text-2xl font-bold text-ink">
-            Nothing in this surface yet
+            No products in this view
           </p>
-          <p className="mt-2 text-sm text-ink-soft">Try another category.</p>
+          <p className="mt-2 text-sm text-ink-soft">
+            {active ? 'Try another category.' : 'Add a product in the admin to get started.'}
+          </p>
         </div>
       ) : (
         <div className="mt-8 grid grid-cols-2 gap-x-4 gap-y-8 md:mt-10 md:grid-cols-3 md:gap-x-5 md:gap-y-12 lg:grid-cols-4">
