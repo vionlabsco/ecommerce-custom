@@ -53,7 +53,7 @@ export function ProductForm({
             name="name"
             required
             defaultValue={product?.name}
-            placeholder="Glass Mouse Pad"
+            placeholder="Sleep Formula"
             className={inputCls}
           />
         </div>

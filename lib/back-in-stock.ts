@@ -6,7 +6,9 @@
 // a background task can email everyone whose notified_at is null. The
 // background task isn't wired yet — this just captures the signups.
 
+import { headers } from 'next/headers'
 import { supabase, isSupabaseConfigured } from '@/lib/supabase/client'
+import { rateLimit, requestKey } from '@/lib/rate-limit'
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/
 
@@ -19,6 +21,13 @@ export async function subscribeBackInStock(input: {
   variantKey?: string | null
   email: string
 }): Promise<SignupResult> {
+  // Per-IP rate limit — 5 signups per minute per IP. Also blocks the "sign
+  // every stranger up" abuse where an attacker spams a real user's inbox.
+  const rl = rateLimit(requestKey(headers(), 'backInStock'), 5, 60_000)
+  if (!rl.ok) {
+    return { ok: false, error: 'Too many attempts. Try again in a moment.' }
+  }
+
   const productId = String(input.productId ?? '').slice(0, 64)
   const variantKey = (input.variantKey ?? '').toString().slice(0, 64) || null
   const email = String(input.email ?? '').trim().toLowerCase().slice(0, 200)

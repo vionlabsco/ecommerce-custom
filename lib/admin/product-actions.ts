@@ -54,15 +54,69 @@ function parseList(v: FormDataEntryValue | null, sep: string): string[] {
 }
 
 /** Upload a single image to the `product-images` Supabase bucket and return
- *  its public URL. Returns null if the file is empty or upload fails. */
+ *  its public URL. Returns null on any failure — validation failures are
+ *  logged but not surfaced to the caller so they can't be used as an oracle.
+ *
+ *  Hardening (fixes C4):
+ *   - 5 MB size cap (larger uploads rejected before touching storage).
+ *   - Magic-byte sniff (first 12 bytes) — accepts only JPEG / PNG / WebP / GIF.
+ *   - Extension + `contentType` are forced by the sniff result, so a lying
+ *     browser can't get an HTML/SVG/JS file into a public bucket.
+ *   - Random filename (never the client-supplied name). */
+
+const MAX_UPLOAD_BYTES = 5 * 1024 * 1024
+
+type SniffedType = { ext: 'jpg' | 'png' | 'webp' | 'gif'; contentType: string }
+
+function sniffImage(bytes: Uint8Array): SniffedType | null {
+  if (bytes.length < 12) return null
+  // JPEG: FF D8 FF
+  if (bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff) {
+    return { ext: 'jpg', contentType: 'image/jpeg' }
+  }
+  // PNG: 89 50 4E 47 0D 0A 1A 0A
+  if (
+    bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47 &&
+    bytes[4] === 0x0d && bytes[5] === 0x0a && bytes[6] === 0x1a && bytes[7] === 0x0a
+  ) {
+    return { ext: 'png', contentType: 'image/png' }
+  }
+  // GIF: 47 49 46 38 (37|39) 61
+  if (
+    bytes[0] === 0x47 && bytes[1] === 0x49 && bytes[2] === 0x46 && bytes[3] === 0x38 &&
+    (bytes[4] === 0x37 || bytes[4] === 0x39) && bytes[5] === 0x61
+  ) {
+    return { ext: 'gif', contentType: 'image/gif' }
+  }
+  // WebP: "RIFF" .... "WEBP"
+  if (
+    bytes[0] === 0x52 && bytes[1] === 0x49 && bytes[2] === 0x46 && bytes[3] === 0x46 &&
+    bytes[8] === 0x57 && bytes[9] === 0x45 && bytes[10] === 0x42 && bytes[11] === 0x50
+  ) {
+    return { ext: 'webp', contentType: 'image/webp' }
+  }
+  return null
+}
+
 async function uploadImage(file: File | null): Promise<string | null> {
   if (!file || !(file instanceof File) || file.size === 0) return null
   if (!isSupabaseConfigured || !supabase) return null
-  const ext = (file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '')
-  const fileName = `${Date.now()}-${Math.random().toString(36).slice(2, 10)}.${ext}`
+  if (file.size > MAX_UPLOAD_BYTES) {
+    console.warn('[uploadImage] rejected: size', file.size)
+    return null
+  }
+  // Read the whole file — we buffer the whole thing since we're capped at 5 MB,
+  // and we need the bytes to write to storage anyway.
+  const buf = new Uint8Array(await file.arrayBuffer())
+  const sniff = sniffImage(buf)
+  if (!sniff) {
+    console.warn('[uploadImage] rejected: not a recognised image')
+    return null
+  }
+  const fileName = `${Date.now()}-${Math.random().toString(36).slice(2, 10)}.${sniff.ext}`
   const { error } = await supabase.storage
     .from('product-images')
-    .upload(fileName, file, { contentType: file.type, upsert: false })
+    .upload(fileName, buf, { contentType: sniff.contentType, upsert: false })
   if (error) {
     console.error('Image upload failed:', error.message)
     return null

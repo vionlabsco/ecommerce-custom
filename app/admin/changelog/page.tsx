@@ -31,6 +31,24 @@ function parseChangelog(md: string): { intro: string; entries: Entry[] } {
 // Render a minimal markdown subset: headings (### / ####), bullets, bold,
 // inline code. Good enough for the changelog format. No external deps so this
 // stays a Server Component with no client-side cost.
+//
+// Link href sanitization (security audit L2): only allow http(s)://, mailto:,
+// and same-origin (/) hrefs. Everything else — javascript:, data:, vbscript: —
+// falls back to a plain "#" so a compromised or badly-written CHANGELOG.md
+// can't inject an XSS vector.
+function safeHref(raw: string): string {
+  const t = raw.trim()
+  if (
+    t.startsWith('http://') ||
+    t.startsWith('https://') ||
+    t.startsWith('mailto:') ||
+    t.startsWith('/')
+  ) {
+    return t.replace(/"/g, '&quot;')
+  }
+  return '#'
+}
+
 function renderInline(text: string): string {
   return text
     .replace(/&/g, '&amp;')
@@ -38,7 +56,9 @@ function renderInline(text: string): string {
     .replace(/>/g, '&gt;')
     .replace(/`([^`]+)`/g, '<code class="rounded bg-gray-100 px-1 py-0.5 text-[12px] text-gray-800">$1</code>')
     .replace(/\*\*([^*]+)\*\*/g, '<strong class="font-semibold text-gray-900">$1</strong>')
-    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" class="text-emerald-700 hover:underline">$1</a>')
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_m, label: string, href: string) =>
+      `<a href="${safeHref(href)}" class="text-emerald-700 hover:underline">${label}</a>`,
+    )
 }
 
 function bodyToHtml(body: string): string {
@@ -76,7 +96,7 @@ export default async function ChangelogPage() {
     <>
       <PageHeader
         title="Changelog"
-        subtitle="Everything shipped to vionlabs.co. Newest first. Quote the date when reporting a bug."
+        subtitle="Everything shipped to the storefront. Newest first. Quote the date when reporting a bug."
       />
 
       {intro && (

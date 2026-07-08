@@ -4,7 +4,7 @@
 import type { MetadataRoute } from 'next'
 import { getAllProducts } from '@/lib/products'
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://vionlabs.co'
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://example.com'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date()

@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { site } from '@/lib/site'
 
 export const metadata: Metadata = { title: 'Contact' }
 
@@ -10,8 +11,8 @@ export default function ContactPage() {
         Contact
       </h1>
       <p>
-        Questions about an order, warranty, or just want to say hi? We read
-        every message and reply within one business day.
+        Questions about an order, an ingredient, or something on the label? We
+        read every message and reply within one business day.
       </p>
 
       <div className="mt-10 rounded-lg border border-line bg-card p-6">
@@ -19,27 +20,29 @@ export default function ContactPage() {
           Email
         </p>
         <a
-          href="mailto:hello@vionlabs.co"
+          href={`mailto:${site.contactEmail}`}
           className="mt-1 block font-display text-xl font-bold text-ink hover:text-accent"
         >
-          hello@vionlabs.co
+          {site.contactEmail}
         </a>
       </div>
 
       <h2 className="mt-10 font-display text-xl font-bold text-ink">Press &amp; partnerships</h2>
       <p>
         For press inquiries, creator partnerships, or wholesale, email{' '}
-        <a href="mailto:partners@vionlabs.co" className="text-accent hover:underline">
-          partners@vionlabs.co
+        <a
+          href={`mailto:partners@${site.contactEmail.split('@')[1]}`}
+          className="text-accent hover:underline"
+        >
+          partners@{site.contactEmail.split('@')[1]}
         </a>
         .
       </p>
 
       <h2 className="mt-10 font-display text-xl font-bold text-ink">Order help</h2>
       <p>
-        For order-specific questions, include your order number (begins with{' '}
-        <code className="rounded bg-ink/5 px-1 py-0.5 text-[12px]">VL-</code>)
-        so we can locate it instantly.
+        For order-specific questions, include your order number so we can locate
+        it instantly.
       </p>
     </>
   )

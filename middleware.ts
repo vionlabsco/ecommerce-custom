@@ -1,9 +1,9 @@
 // Route-by-hostname + auth gates for /admin/* and /account/*.
 //
 // Two faces of the same Next.js app, separated by the request's Host header:
-//   • storefront host (vionlabs.co, ecommerce-custom-iota.vercel.app, …)
+//   • storefront host (your production domain, *.vercel.app, …)
 //     → /admin/* is hidden (404). /account/* is reachable. Everything else passes.
-//   • admin host (app.vionlabs.co, or any host listed in ADMIN_HOSTS)
+//   • admin host (any host listed in ADMIN_HOSTS env — e.g. app.yourdomain.com)
 //     → only /admin/* is reachable. Root '/' redirects to /admin.
 //   • localhost → both faces work; only the auth gates apply.
 //
@@ -16,7 +16,7 @@ import { createServerClient } from '@supabase/ssr'
 import { isAllowedAdmin } from '@/lib/auth/admin'
 
 const ADMIN_HOSTS = new Set(
-  (process.env.ADMIN_HOSTS ?? 'app.vionlabs.co')
+  (process.env.ADMIN_HOSTS ?? '')
     .split(',')
     .map((s) => s.trim().toLowerCase())
     .filter(Boolean),

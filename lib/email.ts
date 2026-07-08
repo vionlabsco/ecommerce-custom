@@ -3,7 +3,7 @@
 //
 // Configured via two env vars:
 //   RESEND_API_KEY  → from https://resend.com → API Keys
-//   RESEND_FROM     → e.g. "Vionlabs <orders@send.vionlabs.co>"
+//   RESEND_FROM     → e.g. "Vion Labs <orders@send.vionlabs.co>"
 //                     (or "onboarding@resend.dev" for testing before DNS is up)
 //
 // If either is unset, sendOrderConfirmation is a no-op that logs and returns
@@ -15,7 +15,7 @@ import { formatPrice } from '@/lib/format'
 import { site } from '@/lib/site'
 import { buildTracking } from '@/lib/tracking'
 
-const STORE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://vionlabs.co'
+const STORE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://example.com'
 
 const apiKey = process.env.RESEND_API_KEY
 const fromAddress = process.env.RESEND_FROM
@@ -120,7 +120,7 @@ function renderOrderHtml(o: Order): string {
         </td></tr>
 
         <tr><td style="padding:24px 32px 8px 32px;">
-          <div style="color:#ff5c28;font-weight:600;font-size:11px;letter-spacing:0.18em;text-transform:uppercase;">Order confirmed</div>
+          <div style="color:#2563eb;font-weight:600;font-size:11px;letter-spacing:0.18em;text-transform:uppercase;">Order confirmed</div>
           <h1 style="margin:8px 0 0 0;font-size:24px;line-height:1.2;font-weight:700;color:#0a0a0a;">
             Thanks${o.customer.name ? `, ${escape(o.customer.name.split(' ')[0])}` : ''} — your order is in.
           </h1>
@@ -130,7 +130,7 @@ function renderOrderHtml(o: Order): string {
         </td></tr>
 
         <tr><td style="padding:24px 32px 0 32px;">
-          <div style="background:#fff1ec;border-radius:8px;padding:14px 16px;color:#0a0a0a;font-size:13px;">
+          <div style="background:#e0edff;border-radius:8px;padding:14px 16px;color:#0a0a0a;font-size:13px;">
             Order <strong>${escape(o.number)}</strong> &middot; Placed ${new Date(o.placedAt).toLocaleDateString('en-US', { dateStyle: 'medium' })}
           </div>
         </td></tr>
@@ -144,7 +144,7 @@ function renderOrderHtml(o: Order): string {
         <tr><td style="padding:16px 32px 0 32px;">
           <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="font-size:14px;color:#525252;">
             <tr><td style="padding:4px 0;">Subtotal</td><td style="padding:4px 0;text-align:right;font-variant-numeric:tabular-nums;">${formatPrice(o.subtotalCents)}</td></tr>
-            ${o.discountCents > 0 ? `<tr><td style="padding:4px 0;color:#ff5c28;">Discount${o.discountCode ? ` · ${escape(o.discountCode)}` : ''}</td><td style="padding:4px 0;text-align:right;font-variant-numeric:tabular-nums;color:#ff5c28;">−${formatPrice(o.discountCents)}</td></tr>` : ''}
+            ${o.discountCents > 0 ? `<tr><td style="padding:4px 0;color:#2563eb;">Discount${o.discountCode ? ` · ${escape(o.discountCode)}` : ''}</td><td style="padding:4px 0;text-align:right;font-variant-numeric:tabular-nums;color:#2563eb;">−${formatPrice(o.discountCents)}</td></tr>` : ''}
             <tr><td style="padding:4px 0;">Shipping</td><td style="padding:4px 0;text-align:right;font-variant-numeric:tabular-nums;">${o.shippingCents === 0 ? 'Free' : formatPrice(o.shippingCents)}</td></tr>
             <tr><td style="padding:4px 0;">Estimated tax</td><td style="padding:4px 0;text-align:right;font-variant-numeric:tabular-nums;">${formatPrice(o.taxCents)}</td></tr>
             <tr><td style="padding:12px 0 4px 0;border-top:1px solid #e5e7eb;font-size:16px;font-weight:700;color:#0a0a0a;">Total</td><td style="padding:12px 0 4px 0;border-top:1px solid #e5e7eb;text-align:right;font-variant-numeric:tabular-nums;font-size:16px;font-weight:700;color:#0a0a0a;">${formatPrice(o.totalCents)}</td></tr>
@@ -152,7 +152,7 @@ function renderOrderHtml(o: Order): string {
         </td></tr>
 
         <tr><td style="padding:24px 32px 0 32px;">
-          <div style="color:#ff5c28;font-weight:600;font-size:11px;letter-spacing:0.18em;text-transform:uppercase;">Shipping to</div>
+          <div style="color:#2563eb;font-weight:600;font-size:11px;letter-spacing:0.18em;text-transform:uppercase;">Shipping to</div>
           <div style="margin-top:6px;color:#0a0a0a;font-size:14px;line-height:1.5;">
             ${escape(o.customer.name)}<br />
             ${escape(a.line1)}<br />
@@ -163,13 +163,13 @@ function renderOrderHtml(o: Order): string {
 
         <tr><td style="padding:32px 32px 32px 32px;">
           <p style="margin:0;color:#525252;font-size:13px;line-height:1.6;">
-            Questions about your order? Reply to this email or write to <a href="mailto:${escape(site.contactEmail)}" style="color:#ff5c28;text-decoration:none;">${escape(site.contactEmail)}</a> &mdash; we read every message.
+            Questions about your order? Reply to this email or write to <a href="mailto:${escape(site.contactEmail)}" style="color:#2563eb;text-decoration:none;">${escape(site.contactEmail)}</a> &mdash; we read every message.
           </p>
         </td></tr>
       </table>
 
       <p style="margin:18px 0 0 0;font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:#9ca3af;">
-        ${escape(site.brand)} &middot; Built to last
+        ${escape(site.brand)} &middot; Made to absorb
       </p>
     </td></tr>
   </table>
@@ -230,7 +230,7 @@ function renderShippedHtml(
         </td></tr>
 
         <tr><td style="padding:24px 32px 8px 32px;">
-          <div style="color:#ff5c28;font-weight:600;font-size:11px;letter-spacing:0.18em;text-transform:uppercase;">Shipped</div>
+          <div style="color:#2563eb;font-weight:600;font-size:11px;letter-spacing:0.18em;text-transform:uppercase;">Shipped</div>
           <h1 style="margin:8px 0 0 0;font-size:24px;line-height:1.2;font-weight:700;color:#0a0a0a;">
             Your order is on the way${o.customer.name ? `, ${escape(o.customer.name.split(' ')[0])}` : ''}.
           </h1>
@@ -240,13 +240,13 @@ function renderShippedHtml(
         </td></tr>
 
         <tr><td style="padding:24px 32px 0 32px;">
-          <div style="background:#fff1ec;border-radius:8px;padding:18px;">
-            <div style="color:#ff5c28;font-weight:600;font-size:11px;letter-spacing:0.18em;text-transform:uppercase;">Tracking</div>
+          <div style="background:#e0edff;border-radius:8px;padding:18px;">
+            <div style="color:#2563eb;font-weight:600;font-size:11px;letter-spacing:0.18em;text-transform:uppercase;">Tracking</div>
             <div style="margin-top:6px;color:#525252;font-size:14px;">${escape(t.carrierLabel)}</div>
             <div style="font-family:'SF Mono',Menlo,Consolas,monospace;font-size:13px;color:#0a0a0a;margin-top:4px;">${escape(t.trackingNumber)}</div>
             ${t.url ? `
             <div style="margin-top:14px;">
-              <a href="${escape(t.url)}" style="display:inline-block;background:#ff5c28;color:#ffffff;padding:10px 18px;border-radius:6px;font-size:12px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;text-decoration:none;">
+              <a href="${escape(t.url)}" style="display:inline-block;background:#2563eb;color:#ffffff;padding:10px 18px;border-radius:6px;font-size:12px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;text-decoration:none;">
                 Track your package &rarr;
               </a>
             </div>` : ''}
@@ -256,12 +256,12 @@ function renderShippedHtml(
         <tr><td style="padding:24px 32px 32px 32px;">
           <p style="margin:0;color:#525252;font-size:13px;line-height:1.6;">
             You can also see this order &mdash; including the tracking link &mdash; at
-            <a href="${escape(orderUrl)}" style="color:#ff5c28;text-decoration:none;">your order page</a>.
-            Questions? Reply to this email or write to <a href="mailto:${escape(site.contactEmail)}" style="color:#ff5c28;text-decoration:none;">${escape(site.contactEmail)}</a>.
+            <a href="${escape(orderUrl)}" style="color:#2563eb;text-decoration:none;">your order page</a>.
+            Questions? Reply to this email or write to <a href="mailto:${escape(site.contactEmail)}" style="color:#2563eb;text-decoration:none;">${escape(site.contactEmail)}</a>.
           </p>
         </td></tr>
       </table>
-      <p style="margin:18px 0 0 0;font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:#9ca3af;">${escape(site.brand)} &middot; Built to last</p>
+      <p style="margin:18px 0 0 0;font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:#9ca3af;">${escape(site.brand)} &middot; Made to absorb</p>
     </td></tr>
   </table>
 </body>
@@ -293,4 +293,5 @@ function escape(s: string): string {
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
 }

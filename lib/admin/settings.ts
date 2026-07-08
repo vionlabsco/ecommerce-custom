@@ -35,10 +35,10 @@ export type SiteSettings = {
 }
 
 const DEFAULTS: SiteSettings = {
-  storeName: 'Vionlabs',
-  storeTagline: 'Precision desk gear, engineered to last.',
+  storeName: 'Vion Labs',
+  storeTagline: 'Small formulas. Made to absorb.',
   storeDescription: '',
-  contactEmail: 'info@vionlabs.co',
+  contactEmail: 'hello@example.com',
   contactPhone: '',
   addressLine1: '',
   addressCity: '',

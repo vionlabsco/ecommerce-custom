@@ -29,9 +29,17 @@ next-env.d.ts
 
 .vercel
 
-# Playwright + local audit screenshots
+# Playwright + local audit / reference screenshots
 .playwright-mcp/
 audit-*.png
 store-*.png
 white-*.png
 prod-*.png
+nomos-*.png
+viora-*.png
+vionlabs-*.png
+hale-reference-*.png
+
+# Brand package source files — designers keep the master AI/EPS/PDF elsewhere;
+# only the public/brand/* SVGs the app actually renders are tracked.
+Vion-Labs-Brand-Package/

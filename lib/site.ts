@@ -4,11 +4,11 @@
 // ──────────────────────────────────────────────────────────────────────────
 
 export const site = {
-  /** Brand wordmark — typeset as ALL CAPS in the chrome. */
-  brand: 'VIONLABS',
-  tagline: 'Precision desk gear, engineered to last.',
+  /** Brand wordmark — matches the brand-package casing ("Vion Labs"). */
+  brand: 'Vion Labs',
+  tagline: 'Small formulas. Made to absorb.',
   description:
-    'Vionlabs makes precision-engineered mouse pads — a 5mm tempered-glass pad and a stitched cloth pad, each tuned for fast, controlled tracking.',
+    'Vion Labs formulates a minimalist line of daily supplements — each blend dialed for a single outcome, dosed by the science of what your body actually uses.',
 
   /** Currency + money config. Prices throughout the app are stored in cents. */
   currency: 'USD',
@@ -18,10 +18,28 @@ export const site = {
   freeShippingThresholdCents: 5000, // $50.00
   /** Flat shipping fee applied below the free-shipping threshold (in cents). */
   flatShippingCents: 800, // $8.00
+  /** Express shipping flat fee (in cents). Never free — even above threshold. */
+  expressShippingCents: 1800, // $18.00
   /** Estimated tax rate shown at checkout (display only — wire real tax later). */
   taxRate: 0.0825,
 
   contactEmail: 'hello@vionlabs.co',
+
+  /**
+   * Default parcel assumptions for shipping-rate quotes when a merchant hasn't
+   * set per-product weight/dimensions. Small-parcel supplement box sized to
+   * fit up to ~4 bottles. Weight scales with item count.
+   */
+  parcelDefaults: {
+    /** Base packaging weight in grams (empty box + filler). */
+    baseGrams: 250,
+    /** Weight added per line-item unit (one bottle / one pack). */
+    perItemGrams: 100,
+    /** Dimensions in cm. */
+    lengthCm: 20,
+    widthCm: 15,
+    heightCm: 10,
+  },
   social: {
     instagram: 'https://instagram.com',
     twitter: 'https://twitter.com',

@@ -14,7 +14,8 @@ import { placeOrder } from '@/lib/place-order'
 // Re-add `<CouponInput compact />` in the summary block when ready.
 // import { CouponInput } from './CouponInput'
 
-const EXPRESS_CENTS = 1800
+// Display-only shipping preview — server re-computes on submit (never trusted).
+const EXPRESS_CENTS = site.expressShippingCents
 const inputClass =
   'w-full rounded-md border border-line bg-card px-3.5 py-2.5 text-sm text-ink placeholder:text-ink-soft/60 focus:border-ink focus:outline-none focus:ring-1 focus:ring-ink/20'
 const labelClass = 'mb-1.5 block text-[12px] uppercase tracking-[0.12em] text-ink-soft'
@@ -48,8 +49,9 @@ export function CheckoutForm() {
     // Read the form synchronously before any await (the event is recycled).
     const fd = new FormData(e.currentTarget)
     try {
-      // Creates a real order the admin sees. Payment is still simulated here;
-      // Stripe Checkout slots in at this call next.
+      // Creates a real order the admin sees. Server is authoritative for every
+      // money value — we send productId + qty + shipping method, and the server
+      // looks up prices, computes shipping/tax/discount, and returns the total.
       const res = await placeOrder({
         customer: {
           name: `${fd.get('firstName') ?? ''} ${fd.get('lastName') ?? ''}`.trim(),
@@ -57,10 +59,8 @@ export function CheckoutForm() {
         },
         items: items.map((i) => ({
           productId: i.productId,
-          name: i.name,
           variant: `${i.color} · ${i.size}`,
           qty: i.quantity,
-          priceCents: i.priceCents,
         })),
         shippingAddress: {
           line1: String(fd.get('address') ?? ''),
@@ -69,21 +69,20 @@ export function CheckoutForm() {
           postal: String(fd.get('postal') ?? ''),
           country: String(fd.get('country') ?? ''),
         },
-        shippingCents: shipping,
+        shippingMethod: method,
         discountCode: coupon?.code ?? null,
-        discountCents: discountCents,
       })
 
       // Hand off to secure checkout to collect payment off-site. The order is
       // already recorded above (and the confirmation email sent), so we pass
       // only the server-computed total + billing for prefill.
+      // Hand off to secure checkout. Server re-fetches the order by number
+      // and uses the DB total — client-supplied totals are ignored (fixed C2).
       const mres = await fetch('/api/maef/create-session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           orderNumber: res.number,
-          totalCents: res.totalCents,
-          shippingLabel: method === 'express' ? 'Express' : 'Standard',
           billing: {
             first_name: String(fd.get('firstName') ?? ''),
             last_name: String(fd.get('lastName') ?? ''),

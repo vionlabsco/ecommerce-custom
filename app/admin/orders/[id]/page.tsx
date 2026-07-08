@@ -3,6 +3,7 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { getOrder } from '@/lib/admin/store'
 import { fulfillOrderAction, markPaidAction, cancelOrderAction } from '@/lib/admin/actions'
+import { BuyLabelButton } from '@/components/admin/BuyLabelButton'
 import { formatPrice } from '@/lib/format'
 import { formatDate, formatDateTime } from '@/lib/admin/format'
 import { PageHeader } from '@/components/admin/PageHeader'
@@ -145,29 +146,47 @@ export default async function OrderDetailPage({ params }: { params: { id: string
                 )}
 
                 {order.fulfillment.status === 'unfulfilled' ? (
-                  <form action={fulfillOrderAction} className="space-y-3">
-                    <input type="hidden" name="orderId" value={order.id} />
-                    <div>
-                      <label className={label} htmlFor="carrier">Carrier</label>
-                      <select id="carrier" name="carrier" className={input}>
-                        {CARRIERS.map((c) => (
-                          <option key={c}>{c}</option>
-                        ))}
-                      </select>
+                  <div className="space-y-4">
+                    <BuyLabelButton
+                      orderNumber={order.number}
+                      destinationCountry={order.shippingAddress.country || 'CA'}
+                    />
+
+                    <div className="relative">
+                      <div className="absolute inset-0 flex items-center" aria-hidden>
+                        <div className="w-full border-t border-gray-200" />
+                      </div>
+                      <div className="relative flex justify-center">
+                        <span className="bg-white px-3 text-[11px] font-medium uppercase tracking-wider text-gray-400">
+                          or enter tracking manually
+                        </span>
+                      </div>
                     </div>
-                    <div>
-                      <label className={label} htmlFor="tracking">Tracking number</label>
-                      <input
-                        id="tracking"
-                        name="tracking"
-                        placeholder="e.g. 1Z999AA10123456784"
-                        className={input}
-                      />
-                    </div>
-                    <button className="w-full rounded-md bg-emerald-700 px-4 py-2 text-[13px] font-medium text-white shadow-sm transition-colors hover:bg-emerald-800">
-                      Mark as fulfilled
-                    </button>
-                  </form>
+
+                    <form action={fulfillOrderAction} className="space-y-3">
+                      <input type="hidden" name="orderId" value={order.id} />
+                      <div>
+                        <label className={label} htmlFor="carrier">Carrier</label>
+                        <select id="carrier" name="carrier" className={input}>
+                          {CARRIERS.map((c) => (
+                            <option key={c}>{c}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label className={label} htmlFor="tracking">Tracking number</label>
+                        <input
+                          id="tracking"
+                          name="tracking"
+                          placeholder="e.g. 1Z999AA10123456784"
+                          className={input}
+                        />
+                      </div>
+                      <button className="w-full rounded-md bg-emerald-700 px-4 py-2 text-[13px] font-medium text-white shadow-sm transition-colors hover:bg-emerald-800">
+                        Mark as fulfilled
+                      </button>
+                    </form>
+                  </div>
                 ) : (
                   <div className="rounded-md bg-emerald-50 px-4 py-3 text-sm text-emerald-800 ring-1 ring-inset ring-emerald-600/15">
                     <p className="font-medium">Fulfilled via {order.fulfillment.carrier}</p>

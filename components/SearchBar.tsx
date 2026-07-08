@@ -91,7 +91,7 @@ export function SearchOverlay() {
               type="search"
               value={q}
               onChange={(e) => setQ(e.target.value)}
-              placeholder="Search pads, colours, or sizes…"
+              placeholder="Search formulas, ingredients, or goals…"
               className="w-full bg-transparent py-4 text-lg text-ink placeholder:text-ink-mute focus:outline-none"
               autoComplete="off"
               maxLength={120}

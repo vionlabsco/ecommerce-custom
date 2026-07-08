@@ -1,15 +1,17 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { useCart } from './CartProvider'
 import { SearchToggle } from './SearchBar'
 import { site } from '@/lib/site'
 
 const NAV = [
   { label: 'Shop', href: '/shop' },
-  { label: 'Glass', href: '/shop?category=Glass' },
-  { label: 'Cloth', href: '/shop?category=Cloth' },
-  { label: 'Spec', href: '/pages/specs' },
+  { label: 'Sleep', href: '/shop?category=Sleep' },
+  { label: 'Focus', href: '/shop?category=Focus' },
+  { label: 'Daily', href: '/shop?category=Daily' },
+  { label: 'Quality', href: '/pages/specs' },
 ]
 
 function BagIcon() {
@@ -43,11 +45,11 @@ export function Header() {
           </span>
           <span className="text-accent">●</span>
           <span className="text-[10.5px] font-medium uppercase tracking-widest2">
-            30-day returns
+            30-day guarantee
           </span>
           <span className="hidden text-accent sm:inline">●</span>
           <span className="hidden text-[10.5px] font-medium uppercase tracking-widest2 sm:inline">
-            1-yr warranty
+            Third-party tested
           </span>
         </div>
       </div>
@@ -68,9 +70,17 @@ export function Header() {
 
           <Link
             href="/"
-            className="justify-self-start font-display text-[22px] font-bold tracking-tightest text-ink md:justify-self-center"
+            aria-label={site.brand}
+            className="flex items-center justify-self-start md:justify-self-center"
           >
-            {site.brand}
+            <Image
+              src="/brand/logo-horizontal-color.svg"
+              alt={site.brand}
+              width={583}
+              height={190}
+              priority
+              className="h-8 w-auto md:h-9"
+            />
           </Link>
 
           <div className="flex items-center justify-end gap-2">

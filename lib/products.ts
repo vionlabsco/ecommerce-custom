@@ -15,7 +15,14 @@ function id(): string {
   return randomBytes(6).toString('hex')
 }
 
-export const CATEGORIES = ['Glass', 'Cloth'] as const
+export const CATEGORIES = [
+  'Sleep',
+  'Focus',
+  'Immunity',
+  'Energy',
+  'Recovery',
+  'Daily',
+] as const
 
 export type Category = string
 
@@ -55,56 +62,136 @@ export type Product = {
   stock?: number
 }
 
+// Placeholder catalog. Names, copy, prices, flavors, and pack sizes are all
+// intentionally generic — replace via the admin (or edit here) once the client
+// finalises the line. Blue-family `accent` hexes let the monogram tiles read
+// as one coherent range in the store grid.
 export const PRODUCTS: Product[] = [
   {
-    id: 'p_glass_pad',
-    slug: 'glass-mouse-pad',
-    name: 'Glass Mouse Pad',
-    category: 'Glass',
-    priceCents: 3900,
-    shortDescription: 'A tempered-glass pad with a micro-etched surface for fast, precise tracking.',
+    id: 'p_sleep_formula',
+    slug: 'sleep-formula',
+    name: 'Sleep Formula',
+    category: 'Sleep',
+    priceCents: 3400,
+    shortDescription: 'A nightly micro-gummy for falling asleep — and staying there.',
     description:
-      'A 5mm tempered-glass surface, micro-etched for a smooth-but-controlled glide that high-DPI sensors love. The underside is a full sheet of anti-slip silicone, so it stays put through fast flicks, and the polished edges are easy on your wrist. Wipes clean in seconds.',
+      'A dialed sleep blend designed to shorten how long it takes to drift off and stabilise the second half of the night. Non-habit-forming, no morning grog. Take two, twenty minutes before bed.',
     details: [
-      '5mm tempered glass, micro-etched surface',
-      'Full anti-slip silicone base',
-      'Rounded, polished edges',
-      'Wipe clean with a damp cloth',
+      'Two-gummy dose, 20 min before bed',
+      'Non-habit-forming — no morning grog',
+      '30 nights per bottle',
+      'Third-party tested, every batch',
     ],
-    colors: [
-      { name: 'Black', hex: '#1c1c1c' },
-      { name: 'White', hex: '#ececec' },
-    ],
-    sizes: ['Square', 'Rectangle'],
-    accent: '#5b6b73',
-    badge: 'New',
+    colors: [],
+    sizes: [],
+    accent: '#1e3a8a',
+    badge: 'Bestseller',
     featured: true,
-    stock: 40,
+    stock: 60,
   },
   {
-    id: 'p_cloth_pad',
-    slug: 'cloth-mouse-pad',
-    name: 'Cloth Mouse Pad',
-    category: 'Cloth',
-    priceCents: 1900,
-    shortDescription: 'A stitched-edge cloth pad with a smooth, low-friction weave.',
+    id: 'p_focus_blend',
+    slug: 'focus-blend',
+    name: 'Focus Blend',
+    category: 'Focus',
+    priceCents: 3200,
+    shortDescription: 'Clean, jitter-free clarity — for the work you actually mean to do.',
     description:
-      'A fine micro-weave cloth top over a dense foam core — smooth enough for speed, with just enough texture for control. Stitched, anti-fray edges keep it tidy for years, and the natural-rubber base grips any desk.',
+      'A stack of nootropic actives that sharpens attention without the coffee spike-and-crash. Formulated for two-to-three-hour cognitive blocks. One micro-tab in the morning, one after lunch if you need it.',
     details: [
-      'Micro-weave cloth surface',
-      'Stitched anti-fray edges',
-      'Non-slip natural rubber base',
-      'Machine washable, air dry',
+      'No caffeine, no jitters',
+      'Onset in 30–45 minutes',
+      '60 micro-tabs per bottle',
+      'Third-party tested, every batch',
     ],
-    colors: [
-      { name: 'Black', hex: '#1c1c1c' },
-      { name: 'Grey', hex: '#6b6b6b' },
-      { name: 'Navy', hex: '#2c3347' },
-    ],
-    sizes: ['Square', 'Rectangle'],
-    accent: '#2c2c2c',
+    colors: [],
+    sizes: [],
+    accent: '#3b5bdb',
     featured: true,
-    stock: 75,
+    stock: 48,
+  },
+  {
+    id: 'p_immunity_daily',
+    slug: 'immunity-daily',
+    name: 'Immunity Daily',
+    category: 'Immunity',
+    priceCents: 2800,
+    shortDescription: 'Baseline defence, one gummy a day. For the sniffle you’d rather skip.',
+    description:
+      'A daily immune-support gummy stacking the vitamins, minerals, and botanicals your body actually uses to keep the baseline strong. Not a cure — a floor. Take one with breakfast.',
+    details: [
+      'One-a-day, easy to remember',
+      'Real doses, no proprietary blends',
+      '60 gummies per bottle',
+      'Third-party tested, every batch',
+    ],
+    colors: [],
+    sizes: [],
+    accent: '#4c9aff',
+    featured: true,
+    stock: 80,
+  },
+  {
+    id: 'p_energy_ramp',
+    slug: 'energy-ramp',
+    name: 'Energy Ramp',
+    category: 'Energy',
+    priceCents: 3000,
+    shortDescription: 'Sustained energy that ramps up, holds, and doesn’t crash.',
+    description:
+      'Slow-release energy without the caffeine cliff. A blend of adaptogens, B-complex, and paced caffeine that gets you to 3pm without the shakes. One tab in the morning.',
+    details: [
+      'Slow-release, no crash',
+      'Low-dose caffeine (60mg) + adaptogens',
+      '30 tabs per bottle',
+      'Third-party tested, every batch',
+    ],
+    colors: [],
+    sizes: [],
+    accent: '#2563eb',
+    featured: true,
+    stock: 55,
+  },
+  {
+    id: 'p_recovery_complex',
+    slug: 'recovery-complex',
+    name: 'Recovery Complex',
+    category: 'Recovery',
+    priceCents: 3600,
+    shortDescription: 'For the day after. Muscle, joint, and inflammation support in one dose.',
+    description:
+      'A post-effort recovery capsule stacking anti-inflammatories, magnesium, and joint-support amino acids. Take two in the evening on training days. Two capsules per dose.',
+    details: [
+      'Two capsules, evening of training',
+      'Magnesium + curcumin + collagen peptides',
+      '60 capsules per bottle',
+      'Third-party tested, every batch',
+    ],
+    colors: [],
+    sizes: [],
+    accent: '#5b8fd9',
+    stock: 42,
+  },
+  {
+    id: 'p_daily_baseline',
+    slug: 'daily-baseline',
+    name: 'Daily Baseline',
+    category: 'Daily',
+    priceCents: 4200,
+    shortDescription: 'The essentials your diet keeps missing — in one honest dose.',
+    description:
+      'A daily multivitamin built to fill the gaps most modern diets leave behind. Real doses of vitamin D, B-complex, magnesium, and omega-3. Two capsules with your first meal.',
+    details: [
+      'Two capsules with breakfast',
+      'Fills real gaps, not marketing gaps',
+      '60 capsules per bottle',
+      'Third-party tested, every batch',
+    ],
+    colors: [],
+    sizes: [],
+    accent: '#3e5c76',
+    featured: true,
+    stock: 90,
   },
 ]
 
@@ -331,8 +418,13 @@ export function getVariantState(
   return 'in-stock'
 }
 
-/** True if a product has at least one buyable variant. */
+/** True if a product has at least one buyable variant.
+ *  Single-variant products (no colours + no sizes) fall back to the product's
+ *  own `stock` count — otherwise every variant-less SKU would look sold out. */
 export function isProductAvailable(product: Product): boolean {
+  const hasVariants =
+    (product.colors?.length ?? 0) > 0 || (product.sizes?.length ?? 0) > 0
+  if (!hasVariants) return (product.stock ?? 0) > 0
   for (const color of product.colors) {
     for (const size of product.sizes) {
       if (getVariantState(product, color.name, size) !== 'sold-out') return true

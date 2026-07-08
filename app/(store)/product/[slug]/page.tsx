@@ -96,24 +96,28 @@ export default async function ProductPage({ params }: { params: { slug: string }
               Specs at a glance
             </p>
             <dl className="grid grid-cols-1 divide-y divide-line text-sm sm:grid-cols-2 sm:divide-x sm:divide-y-0">
-              <div className="px-5 py-3 sm:py-4">
-                <dt className="text-[10.5px] font-medium uppercase tracking-widest2 text-ink-soft">Sizes</dt>
-                <dd className="mt-1 font-medium text-ink">{product.sizes?.join(' · ') || '—'}</dd>
-              </div>
-              <div className="px-5 py-3 sm:py-4">
-                <dt className="text-[10.5px] font-medium uppercase tracking-widest2 text-ink-soft">Colours</dt>
-                <dd className="mt-1 font-medium text-ink">
-                  {(product.colors ?? []).map((c) => c.name).join(' · ') || '—'}
-                </dd>
-              </div>
+              {(product.sizes?.length ?? 0) > 0 && (
+                <div className="px-5 py-3 sm:py-4">
+                  <dt className="text-[10.5px] font-medium uppercase tracking-widest2 text-ink-soft">Sizes</dt>
+                  <dd className="mt-1 font-medium text-ink">{product.sizes.join(' · ')}</dd>
+                </div>
+              )}
+              {(product.colors?.length ?? 0) > 0 && (
+                <div className="px-5 py-3 sm:py-4">
+                  <dt className="text-[10.5px] font-medium uppercase tracking-widest2 text-ink-soft">Flavours</dt>
+                  <dd className="mt-1 font-medium text-ink">
+                    {product.colors.map((c) => c.name).join(' · ')}
+                  </dd>
+                </div>
+              )}
               <div className="px-5 py-3 sm:py-4">
                 <dt className="text-[10.5px] font-medium uppercase tracking-widest2 text-ink-soft">Category</dt>
                 <dd className="mt-1 font-medium text-ink">{product.category}</dd>
               </div>
               <div className="px-5 py-3 sm:py-4">
-                <dt className="text-[10.5px] font-medium uppercase tracking-widest2 text-ink-soft">Warranty</dt>
+                <dt className="text-[10.5px] font-medium uppercase tracking-widest2 text-ink-soft">Guarantee</dt>
                 <dd className="mt-1 font-medium text-ink">
-                  <Link href="/pages/warranty" className="hover:text-accent">1 year</Link>
+                  <Link href="/pages/warranty" className="hover:text-accent">30-day</Link>
                 </dd>
               </div>
             </dl>

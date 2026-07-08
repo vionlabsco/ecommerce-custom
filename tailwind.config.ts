@@ -5,34 +5,36 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // Vionlabs — light, modern, with hot-orange accent.
-        // `paper` is the page canvas (white). `ink` is type + inverted elements.
-        // `*-soft` and `*-mute` are muted text colours, paired with their
-        // background ("ink-soft" = dark grey for light bgs, "paper-soft" =
-        // light grey for the rare dark CTAs/sections).
+        // Vion Labs — brand palette per Vion-Labs-Brand-Package.
+        //   Abyss Navy #0B1F3A  → `ink` (type + dark surfaces)
+        //   Vion Blue  #2E5CFF  → `accent` (CTAs, active states)
+        //   Bio Teal   #14C9B8  → `teal` (secondary accent, success indicators)
+        //   Mist       #EDF2F9  → `surface` (light backgrounds)
         paper: '#ffffff',
-        surface: '#fafafa',
-        'surface-2': '#f4f4f5',
-        line: '#e5e7eb',
-        ink: '#0a0a0a',
-        'ink-soft': '#525252',
-        'ink-mute': '#9ca3af',
-        'paper-soft': '#d4d4d4',
-        'paper-mute': '#737373',
-        accent: '#ff5c28',
-        'accent-hover': '#e84a1a',
-        'accent-deep': '#cc4720',
-        'accent-soft': '#fff1ec',
-        // `card` = subtle off-white for elevated surfaces (order summary, etc.)
-        card: '#fafafa',
-        // `clay` was referenced in components but never defined — kept as an
-        // alias of accent so existing markup keeps working through the
-        // light-theme migration.
-        clay: '#ff5c28',
-        lime: '#65a30d',
+        surface: '#edf2f9',            // Mist
+        'surface-2': '#e2eaf3',
+        line: '#d3ddec',
+        ink: '#0b1f3a',                // Abyss Navy
+        'ink-soft': '#42597a',
+        'ink-mute': '#8ba3bf',
+        'paper-soft': '#c8d4e2',
+        'paper-mute': '#7c93ab',
+        accent: '#2e5cff',             // Vion Blue
+        'accent-hover': '#2249d6',
+        'accent-deep': '#1e3aa8',
+        'accent-soft': '#e0e8ff',
+        card: '#f6f9fd',
+        // Landing-page dark surfaces + highlight
+        navy: '#0b1f3a',               // same as ink; kept for readability
+        'navy-soft': '#132a52',
+        ice: '#7cc4ff',
+        teal: '#14c9b8',               // Bio Teal — success + secondary accent
+        // Legacy aliases — keep existing markup working
+        clay: '#2e5cff',
+        lime: '#14c9b8',               // now Bio Teal (was green)
       },
       fontFamily: {
-        display: ['Satoshi', 'var(--font-body)', 'system-ui', 'sans-serif'],
+        display: ['var(--font-display)', 'var(--font-body)', 'system-ui', 'sans-serif'],
         body: ['var(--font-body)', 'system-ui', 'sans-serif'],
         mono: ['var(--font-body)', 'system-ui', 'sans-serif'],
       },
@@ -40,8 +42,10 @@ const config: Config = {
         shell: '88rem',
       },
       letterSpacing: {
-        tightest: '-0.04em',
-        widest2: '0.32em',
+        // Softened from -0.04em / 0.32em — headlines now breathe a little and
+        // uppercase labels no longer look like they've been stretched.
+        tightest: '-0.02em',
+        widest2: '0.22em',
       },
       keyframes: {
         rise: {

@@ -51,7 +51,7 @@ export function NewsletterForm() {
         value={email}
         maxLength={200}
         onChange={(e) => setEmail(e.target.value)}
-        placeholder="you@vionlabs.co"
+        placeholder="you@example.com"
         className="min-w-0 flex-1 rounded-md border border-line bg-paper px-4 py-3 text-[14px] text-ink placeholder:text-ink-mute focus:border-accent focus:outline-none"
       />
       <button

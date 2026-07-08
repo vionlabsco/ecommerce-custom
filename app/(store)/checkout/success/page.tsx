@@ -39,7 +39,7 @@ export default async function SuccessPage({
         <svg width="30" height="30" viewBox="0 0 24 24" fill="none" aria-hidden>
           <path
             d="M5 12.5l4.2 4.2L19 7"
-            stroke="#ff5c28"
+            stroke="#2563eb"
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"

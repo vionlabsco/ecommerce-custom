@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { site } from '@/lib/site'
 
 export const metadata: Metadata = { title: 'Privacy policy' }
 
@@ -43,8 +44,8 @@ export default function PrivacyPage() {
       <p>
         Under GDPR / CCPA you have the right to access, correct, or delete the
         personal data we hold about you. Email{' '}
-        <a href="mailto:hello@vionlabs.co" className="text-accent hover:underline">
-          hello@vionlabs.co
+        <a href={`mailto:${site.contactEmail}`} className="text-accent hover:underline">
+          {site.contactEmail}
         </a>{' '}
         and we&apos;ll respond within 30 days.
       </p>

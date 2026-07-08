@@ -83,11 +83,16 @@ alter table products enable row level security;
 drop policy if exists "deny_all" on products;
 create policy "deny_all" on products for all to public using (false) with check (false);
 
--- ── Seed: starter catalog (your two mouse pads) ─────────────────────────────
--- Safe to re-run — existing rows are left untouched.
+-- ── Seed: starter category set (six placeholder wellness categories) ────────
+-- Safe to re-run — existing rows are left untouched. Rename/reorder freely in
+-- the admin; the storefront just reads whatever's here.
 insert into categories (id, name, position) values
-  ('glass', 'Glass', 0),
-  ('cloth', 'Cloth', 1)
+  ('sleep', 'Sleep', 0),
+  ('focus', 'Focus', 1),
+  ('immunity', 'Immunity', 2),
+  ('energy', 'Energy', 3),
+  ('recovery', 'Recovery', 4),
+  ('daily', 'Daily', 5)
 on conflict (id) do nothing;
 
 -- ── Tickets (support inbox) ─────────────────────────────────────────────────
@@ -119,10 +124,10 @@ create policy "deny_all" on tickets for all to public using (false) with check (
 
 create table if not exists site_settings (
   id                              integer primary key default 1,
-  store_name                      text    not null default 'Vionlabs',
-  store_tagline                   text    not null default 'Precision desk gear, engineered to last.',
+  store_name                      text    not null default 'Vion Labs',
+  store_tagline                   text    not null default 'Small formulas. Made to absorb.',
   store_description               text    not null default '',
-  contact_email                   text    not null default 'info@vionlabs.co',
+  contact_email                   text    not null default 'hello@example.com',
   contact_phone                   text    not null default '',
   address_line1                   text    not null default '',
   address_city                    text    not null default '',

@@ -6,6 +6,7 @@
 
 import { headers } from 'next/headers'
 import { supabase, isSupabaseConfigured } from '@/lib/supabase/client'
+import { rateLimit, requestKey } from '@/lib/rate-limit'
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/
 
@@ -16,6 +17,13 @@ export type NewsletterResult =
 export async function subscribeToNewsletter(
   rawEmail: string,
 ): Promise<NewsletterResult> {
+  // Per-IP rate limit — 5 signups per minute is generous for real customers
+  // (fat-fingered retries) but blunts the "spam our DB" abuse vector.
+  const rl = rateLimit(requestKey(headers(), 'newsletter'), 5, 60_000)
+  if (!rl.ok) {
+    return { ok: false, error: 'Too many attempts. Try again in a moment.' }
+  }
+
   const email = rawEmail.trim().toLowerCase().slice(0, 200)
   if (!EMAIL_RE.test(email)) {
     return { ok: false, error: 'Please enter a valid email.' }

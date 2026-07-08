@@ -125,13 +125,24 @@ export async function createMaefSession(
 export interface MaefComplete {
   parent_order_id?: number | string
   payment_status?: string
-  original_payload?: { total?: number; wc_order_id?: number }
+  original_payload?: {
+    total?: number
+    wc_order_id?: number
+    /** Seconds since epoch — set by buildPayload on outbound. Used for
+     *  freshness checks in verifyComplete to blunt signature replay. */
+    timestamp?: number
+  }
   [k: string]: unknown
 }
 
+/** Max age (seconds) of a valid maef_complete callback. Signed payloads older
+ *  than this are rejected on verify — blunts replay of a captured signature. */
+const MAX_COMPLETE_AGE_SECONDS = 15 * 60
+
 // The parent PUSHES the finished order as ?maef_complete=<base64(json)>&sig=<hmac>.
 // We HMAC the RAW json string (the bytes inside the base64) and compare to sig
-// (timing-safe). Returns the decoded payload, or null if the signature fails.
+// (timing-safe). Returns the decoded payload, or null if the signature fails
+// OR the payload is too old (freshness check — fixes H3 replay).
 export function verifyComplete(maefCompleteB64: string, sig: string): MaefComplete | null {
   if (!SECRET || !maefCompleteB64 || !sig) return null
   let jsonString: string
@@ -144,9 +155,20 @@ export function verifyComplete(maefCompleteB64: string, sig: string): MaefComple
   const a = Buffer.from(expected)
   const b = Buffer.from(sig)
   if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) return null
+  let parsed: MaefComplete
   try {
-    return JSON.parse(jsonString) as MaefComplete
+    parsed = JSON.parse(jsonString) as MaefComplete
   } catch {
     return null
   }
+  // Freshness: the outbound payload includes `timestamp` (seconds). Reject if
+  // older than MAX_COMPLETE_AGE_SECONDS OR more than 5 minutes in the future
+  // (clock-skew tolerance).
+  const ts = Number(parsed.original_payload?.timestamp)
+  if (!Number.isFinite(ts)) return null
+  const nowSec = Math.floor(Date.now() / 1000)
+  const age = nowSec - ts
+  if (age > MAX_COMPLETE_AGE_SECONDS) return null
+  if (age < -5 * 60) return null
+  return parsed
 }

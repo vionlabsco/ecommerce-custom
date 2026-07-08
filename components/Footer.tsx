@@ -6,17 +6,18 @@ const COLUMNS = [
   {
     title: 'Shop',
     links: [
-      { label: 'All products', href: '/shop' },
-      { label: 'Glass pads', href: '/shop?category=Glass' },
-      { label: 'Cloth pads', href: '/shop?category=Cloth' },
+      { label: 'All formulas', href: '/shop' },
+      { label: 'Sleep', href: '/shop?category=Sleep' },
+      { label: 'Focus', href: '/shop?category=Focus' },
+      { label: 'Daily', href: '/shop?category=Daily' },
     ],
   },
   {
     title: 'Support',
     links: [
       { label: 'Shipping & returns', href: '/pages/shipping-returns' },
-      { label: 'Warranty', href: '/pages/warranty' },
-      { label: 'Spec sheet', href: '/pages/specs' },
+      { label: '30-day guarantee', href: '/pages/warranty' },
+      { label: 'Quality & testing', href: '/pages/specs' },
       { label: 'Contact', href: '/pages/contact' },
     ],
   },
@@ -39,9 +40,9 @@ export function Footer() {
       <div className="border-b border-line bg-surface">
         <div className="mx-auto grid max-w-shell items-center gap-10 px-5 py-14 md:grid-cols-[1.1fr_1fr] md:px-8 md:py-16">
           <div>
-            <p className="label-accent">Newsletter — VL//Signal</p>
+            <p className="label-accent">Newsletter</p>
             <h2 className="mt-3 font-display text-3xl font-bold leading-[1.05] text-balance text-ink md:text-[2.5rem]">
-              Drops, restocks, the&nbsp;occasional tear-down.
+              Formula notes, drops, the&nbsp;occasional deep-dive.
             </h2>
             <p className="mt-3 max-w-md text-sm text-ink-soft">
               One email a month, max. Unsubscribe with one click.
@@ -63,10 +64,10 @@ export function Footer() {
             </p>
             <div className="mt-6 flex flex-wrap gap-2">
               <span className="rounded-md border border-line bg-paper px-2.5 py-1 text-[10px] font-medium uppercase tracking-widest2 text-ink-soft">
-                Designed in Canada
+                Third-party tested
               </span>
               <span className="rounded-md border border-line bg-paper px-2.5 py-1 text-[10px] font-medium uppercase tracking-widest2 text-ink-soft">
-                Ships to US &amp; CA
+                Clean label
               </span>
             </div>
           </div>

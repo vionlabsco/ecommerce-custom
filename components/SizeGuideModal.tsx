@@ -2,29 +2,30 @@
 
 import { useEffect, useState } from 'react'
 
-// Mouse-pad size reference. Dimensions are typical industry sizes for the
-// Square and Rectangle SKUs Vionlabs sells. If the catalogue ever grows to
-// include larger XL pads or QCK-format strips, add rows here. Real values
-// can be updated by editing this file (no admin UI needed yet).
+// Pack-size reference. Guides customers to the right bottle for their usage
+// cadence. Rows are placeholders — edit here (no admin UI needed yet) once the
+// finalised pack SKUs are locked.
 type SizeRow = {
   size: string
-  inches: string
-  mm: string
+  supply: string
   use: string
 }
 
 const SIZES: SizeRow[] = [
   {
-    size: 'Square',
-    inches: '13.8" × 13.8"',
-    mm: '350 × 350 mm',
-    use: 'Low-DPI gaming · everyday desk use · compact setups',
+    size: '30-day',
+    supply: '30 servings',
+    use: 'Trying a formula for the first time · one-bottle guarantee applies',
   },
   {
-    size: 'Rectangle',
-    inches: '17.7" × 13.8"',
-    mm: '450 × 350 mm',
-    use: 'Wide mouse sweeps · keyboard + mouse on the same pad',
+    size: '60-day',
+    supply: '60 servings',
+    use: 'Daily use, once you know the formula fits · better $/serving',
+  },
+  {
+    size: '90-day',
+    supply: '90 servings',
+    use: 'Long-term daily use · best $/serving, fewer reorders',
   },
 ]
 
@@ -76,7 +77,7 @@ export function SizeGuideModal() {
       <div className="relative w-full max-w-lg overflow-hidden rounded-t-2xl border border-line bg-paper shadow-2xl sm:rounded-2xl">
         <div className="flex items-center justify-between border-b border-line px-6 py-4">
           <h2 id="size-guide-title" className="font-display text-xl font-bold text-ink">
-            Size guide
+            Pack size guide
           </h2>
           <button
             onClick={() => setOpen(false)}
@@ -96,17 +97,16 @@ export function SizeGuideModal() {
 
         <div className="px-6 py-5">
           <p className="text-sm text-ink-soft">
-            Both Vionlabs pads come in two sizes — same surface, different
-            footprint. Pick by the desk space you have and how wide your
-            mouse sweeps.
+            Same formula, different bottle size. Pick by how often you plan to
+            take it — bigger packs give you a better price per serving.
           </p>
 
           <div className="mt-5 overflow-hidden rounded-lg border border-line">
             <table className="w-full text-left text-sm">
               <thead className="bg-surface text-[10.5px] font-semibold uppercase tracking-widest2 text-ink-soft">
                 <tr>
-                  <th className="px-4 py-2">Size</th>
-                  <th className="px-4 py-2">Dimensions</th>
+                  <th className="px-4 py-2">Pack</th>
+                  <th className="px-4 py-2">Best for</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-line text-ink">
@@ -114,8 +114,7 @@ export function SizeGuideModal() {
                   <tr key={s.size} className="align-top">
                     <td className="px-4 py-3 font-medium">{s.size}</td>
                     <td className="px-4 py-3">
-                      <div>{s.inches}</div>
-                      <div className="text-[12px] text-ink-soft">{s.mm}</div>
+                      <div>{s.supply}</div>
                       <div className="mt-1.5 text-[12px] text-ink-soft">{s.use}</div>
                     </td>
                   </tr>
@@ -125,7 +124,7 @@ export function SizeGuideModal() {
           </div>
 
           <p className="mt-4 text-[12px] text-ink-mute">
-            Sizes are nominal — manufacturing tolerance is ±2 mm.
+            First-time buyers: start with the 30-day — the guarantee covers it.
           </p>
         </div>
 

@@ -10,9 +10,10 @@
 // ──────────────────────────────────────────────────────────────────────────
 
 import { randomBytes } from 'crypto'
-import { getAllProducts, setProductStock } from '@/lib/products'
+import { getAllProducts, getProductById, setProductStock } from '@/lib/products'
 import { supabase, isSupabaseConfigured } from '@/lib/supabase/client'
 import { validateDiscountCode, incrementDiscountUse } from '@/lib/discounts'
+import { site } from '@/lib/site'
 
 /** Cryptographically random alphanumeric token. Used for order IDs / numbers
  *  so they can't be enumerated by walking sequential integers. */
@@ -399,11 +400,14 @@ export async function getOrdersByEmail(email: string): Promise<Order[]> {
   if (!normalised) return []
 
   if (isSupabaseConfigured && supabase) {
-    // customer is jsonb; use the ->> operator for case-insensitive match
+    // customer is jsonb; use the ->> operator to reach the email field.
+    // We escape `%` and `_` (LIKE wildcards) so a crafted email like
+    // `%@%.com` can't harvest other customers' orders. See security audit H2.
+    const escaped = normalised.replace(/[\\%_]/g, '\\$&')
     const { data, error } = await supabase
       .from('orders')
       .select('*')
-      .ilike('customer->>email', normalised)
+      .ilike('customer->>email', escaped)
       .order('placed_at', { ascending: false })
     if (error) {
       console.error('[getOrdersByEmail]', error)
@@ -414,7 +418,7 @@ export async function getOrdersByEmail(email: string): Promise<Order[]> {
   return orders.filter((o) => o.customer.email.toLowerCase() === normalised)
 }
 
-/** Look up an order by its public-facing number (VL-XXXXXXXX). Used by the
+/** Look up an order by its public-facing number (NM-XXXXXXXX). Used by the
  *  storefront success page so customers can revisit it via the link in their
  *  confirmation email and see live tracking once fulfilment lands. */
 export async function getOrderByNumber(number: string): Promise<Order | undefined> {
@@ -432,56 +436,102 @@ export async function getOrderByNumber(number: string): Promise<Order | undefine
 
 export type OrderItemWithId = OrderItem & { productId?: string }
 
+/** Shipping method chosen by the customer. Server maps this to a cent amount —
+ *  never trust a client-supplied shipping cost, since a negative value would
+ *  drive `totalCents` below zero (real bug we shipped through). */
+export type ShippingMethod = 'standard' | 'express'
+
+/** Input for a new order. Prices for each item are looked up server-side by
+ *  `productId` — clients can send anything for `variant` (display only) and
+ *  `qty`, but they can NOT influence the actual charge. */
 export type NewOrderInput = {
   customer: { name: string; email: string }
-  items: OrderItemWithId[]
+  items: Array<{
+    productId: string
+    /** Human-readable "colour · size" — display only, never trusted for pricing. */
+    variant: string
+    qty: number
+  }>
   shippingAddress: Order['shippingAddress']
-  shippingCents: number
+  shippingMethod: ShippingMethod
   /** Optional applied discount code — case-insensitive, validated server-side. */
   discountCode?: string | null
-  /** Hint of the discount amount the customer saw at checkout. The server
-   *  re-validates against the live coupon before applying, so this is just
-   *  a sanity check (we never trust client-supplied money). */
-  discountCents?: number
   paymentStatus?: PaymentStatus
+}
+
+/** Server-computes the shipping charge from method + post-discount subtotal.
+ *  Standard is free at/above the free-shipping threshold. Express is never
+ *  free. Everything is clamped ≥ 0. */
+export function computeShippingCents(
+  method: ShippingMethod,
+  discountedSubtotalCents: number,
+): number {
+  if (method === 'express') return Math.max(0, site.expressShippingCents)
+  if (discountedSubtotalCents >= site.freeShippingThresholdCents) return 0
+  return Math.max(0, site.flatShippingCents)
 }
 
 /** Create an order from a storefront checkout — this is the storefront → admin
  *  sync: the new order lands in the same store the admin reads.
  *
- *  Discount: if input.discountCode is set we re-validate against the live
- *  discount_codes table (never trust the client's discountCents). If the
- *  code is no longer valid (expired, used-up, deactivated between cart and
- *  checkout) the order goes through at full price — better than dropping
- *  the order entirely. */
+ *  Every money value is authoritative from the server:
+ *   - Item prices come from `products.priceCents` (DB), NOT the input.
+ *   - Shipping is `computeShippingCents(method, discountedSubtotal)`.
+ *   - Discount is re-validated against the live `discount_codes` table.
+ *   - Tax is derived from post-discount subtotal.
+ *  If any `productId` is unknown, the order is rejected — never partially
+ *  priced. */
 export async function createOrder(input: NewOrderInput): Promise<Order> {
-  const subtotalCents = input.items.reduce((s, i) => s + i.priceCents * i.qty, 0)
+  // 1. Fetch every product from the DB and reject if any is unknown.
+  const products = await Promise.all(
+    input.items.map((i) => getProductById(i.productId)),
+  )
+  const missingAt = products.findIndex((p) => !p)
+  if (missingAt !== -1) {
+    throw new Error(`Unknown product id: ${input.items[missingAt].productId}`)
+  }
 
-  // Re-validate the discount server-side. Never use input.discountCents.
+  // 2. Rebuild the items with server-side pricing. Clamp qty ≥ 1 and cap it
+  //    at a defensive max so a $1M order can't be dialed in.
+  const items: OrderItem[] = input.items.map((i, ix) => {
+    const p = products[ix]!
+    const qty = Math.max(1, Math.min(99, Math.floor(i.qty || 1)))
+    return {
+      name: p.name,
+      variant: String(i.variant ?? '').slice(0, 200),
+      qty,
+      priceCents: Math.max(0, p.priceCents | 0),
+    }
+  })
+  const subtotalCents = items.reduce((s, i) => s + i.priceCents * i.qty, 0)
+
+  // 3. Re-validate the discount server-side. Never use client-supplied
+  //    discountCents — the amount is derived from the live coupon.
   let discountCode: string | null = null
   let discountCents = 0
   if (input.discountCode) {
     const v = await validateDiscountCode(input.discountCode, subtotalCents)
     if (v.ok) {
       discountCode = v.code.code
-      discountCents = v.discountCents
+      discountCents = Math.max(0, v.discountCents)
     }
   }
 
   const discountedSubtotal = Math.max(0, subtotalCents - discountCents)
-  const taxCents = Math.round(discountedSubtotal * TAX_RATE)
-  const totalCents = discountedSubtotal + input.shippingCents + taxCents
+  const shippingCents = computeShippingCents(input.shippingMethod, discountedSubtotal)
+  const taxCents = Math.max(0, Math.round(discountedSubtotal * TAX_RATE))
+  const totalCents = Math.max(0, discountedSubtotal + shippingCents + taxCents)
   const id = token(8)
   const placedAt = new Date().toISOString()
   const paymentStatus: PaymentStatus = input.paymentStatus ?? 'paid'
   const order: Order = {
     id: `o_${id}`,
-    number: `VL-${id.slice(0, 10)}`,
+    number: `NM-${id.slice(0, 10)}`,
     placedAt,
     customer: input.customer,
-    items: input.items,
+    items,
     subtotalCents,
-    shippingCents: input.shippingCents,
+    shippingCents,
     taxCents,
     totalCents,
     discountCode,
@@ -513,18 +563,16 @@ export async function createOrder(input: NewOrderInput): Promise<Order> {
     }
   }
 
-  // Decrement on-hand stock for each line item. Best-effort: if a product
-  // can't be found or update fails, we log but don't fail the whole order
-  // (the order is already persisted; under-counting stock is safer than
-  // losing the order). Real inventory accuracy requires a DB transaction
-  // — track that as future work when the cart volume warrants it.
-  const products = await getAllProducts()
-  for (const item of input.items) {
-    const p = item.productId
-      ? products.find((x) => x.id === item.productId)
-      : products.find((x) => x.name === item.name)
-    if (!p) continue
-    const next = Math.max(0, (p.stock ?? 0) - item.qty)
+  // Decrement on-hand stock for each line item. Best-effort: if update fails
+  // we log but don't fail the whole order (the order is already persisted;
+  // under-counting stock is safer than losing the order). Real inventory
+  // accuracy requires a DB transaction — future work when volume warrants it.
+  //
+  // We reuse the products we already fetched (see step 1), one per input row.
+  for (let i = 0; i < input.items.length; i++) {
+    const p = products[i]!
+    const qty = items[i].qty // server-clamped
+    const next = Math.max(0, (p.stock ?? 0) - qty)
     try {
       await setProductStock(p.id, next)
     } catch (e) {

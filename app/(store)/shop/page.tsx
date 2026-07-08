@@ -46,7 +46,7 @@ export default async function ShopPage({
           {query ? 'Search results' : 'The Collection'}
         </p>
         <h1 className="mt-3 font-display text-4xl font-bold leading-[1.05] text-ink md:text-5xl">
-          {query ? <>&ldquo;{query}&rdquo;</> : (active ?? 'Every surface')}
+          {query ? <>&ldquo;{query}&rdquo;</> : (active ?? 'The line')}
         </h1>
         <p className="mt-3 text-ink-soft">
           {query ? (
@@ -58,8 +58,8 @@ export default async function ShopPage({
             </>
           ) : (
             <>
-              {products.length} {products.length === 1 ? 'pad' : 'pads'} — engineered,
-              tested, and built to outlast.
+              {products.length} {products.length === 1 ? 'formula' : 'formulas'} — dosed
+              for absorption, third-party tested, made to work.
             </>
           )}
         </p>

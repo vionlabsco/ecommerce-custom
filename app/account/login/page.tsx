@@ -4,6 +4,7 @@ import { Suspense, useState, type FormEvent } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { createAuthClient } from '@/lib/supabase/auth-browser'
+import { safeRedirect } from '@/lib/safe-redirect'
 
 function friendlyError(raw: string): string {
   const msg = raw.toLowerCase()
@@ -21,7 +22,7 @@ function friendlyError(raw: string): string {
 
 function Card() {
   const params = useSearchParams()
-  const redirect = params.get('redirect') ?? '/account'
+  const redirect = safeRedirect(params.get('redirect'), '/account', '/account')
   const justSignedUp = params.get('verify') === '1'
 
   const [email, setEmail] = useState('')

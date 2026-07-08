@@ -119,10 +119,10 @@ create policy "deny_all" on tickets for all to public using (false) with check (
 
 create table if not exists site_settings (
   id                              integer primary key default 1,
-  store_name                      text    not null default 'Vionlabs',
-  store_tagline                   text    not null default 'Precision desk gear, engineered to last.',
+  store_name                      text    not null default 'Vion Labs',
+  store_tagline                   text    not null default 'Small formulas. Made to absorb.',
   store_description               text    not null default '',
-  contact_email                   text    not null default 'info@vionlabs.co',
+  contact_email                   text    not null default 'hello@example.com',
   contact_phone                   text    not null default '',
   address_line1                   text    not null default '',
   address_city                    text    not null default '',

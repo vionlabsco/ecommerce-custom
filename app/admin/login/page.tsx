@@ -4,6 +4,7 @@ import { Suspense, useState, type FormEvent } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { createAuthClient } from '@/lib/supabase/auth-browser'
 import { site } from '@/lib/site'
+import { safeRedirect } from '@/lib/safe-redirect'
 
 function friendlyError(raw: string): string {
   const msg = raw.toLowerCase()
@@ -23,7 +24,7 @@ function LoginCard() {
   const params = useSearchParams()
   const denied = params.get('denied') === '1'
   const oauthFailed = params.get('error') === 'oauth_failed'
-  const redirect = params.get('redirect') ?? '/admin'
+  const redirect = safeRedirect(params.get('redirect'), '/admin', '/admin')
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -97,7 +98,7 @@ function LoginCard() {
               required
               autoComplete="email"
               autoFocus
-              placeholder="you@vionlabs.co"
+              placeholder="you@example.com"
               className="w-full rounded-lg border border-line bg-white px-3.5 py-2.5 text-sm text-ink placeholder:text-ink-soft/50 transition-colors focus:border-ink focus:outline-none focus:ring-2 focus:ring-ink/10"
             />
           </div>

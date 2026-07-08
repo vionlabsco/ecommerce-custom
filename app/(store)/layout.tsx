@@ -6,6 +6,7 @@ import { TrackingScripts } from '@/components/TrackingScripts'
 import { SizeGuideModal } from '@/components/SizeGuideModal'
 import { SearchOverlay } from '@/components/SearchBar'
 import { CookieConsent } from '@/components/CookieConsent'
+import { AgeGate } from '@/components/AgeGate'
 
 export default function StoreLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -24,6 +25,9 @@ export default function StoreLayout({ children }: { children: React.ReactNode })
           cookie-consent banner: scripts only inject if analytics consent
           has been granted. */}
       <TrackingScripts />
+      {/* Age verification — blocks storefront on first visit until the
+          customer confirms they're 18+. Decision persists per device. */}
+      <AgeGate />
       {/* GDPR / PIPEDA consent banner — shows once until decided. */}
       <CookieConsent />
     </CartProvider>

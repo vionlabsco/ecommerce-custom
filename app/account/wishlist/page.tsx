@@ -65,7 +65,7 @@ export default function WishlistPage() {
       {hydrated && count === 0 && (
         <div className="mt-10 rounded-xl border border-line bg-card p-10 text-center">
           <p className="font-display text-xl font-bold text-ink">
-            Save the pads you&apos;re considering
+            Save the formulas you&apos;re considering
           </p>
           <p className="mt-2 text-sm text-ink-soft">
             Tap the heart on any product card or page — it&apos;ll show up here.
