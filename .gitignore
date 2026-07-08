@@ -43,3 +43,6 @@ hale-reference-*.png
 # Brand package source files — designers keep the master AI/EPS/PDF elsewhere;
 # only the public/brand/* SVGs the app actually renders are tracked.
 Vion-Labs-Brand-Package/
+
+# Raw client image drops — only the copies in public/product/ are tracked.
+Images/

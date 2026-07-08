@@ -4,20 +4,17 @@ import { NewsletterForm } from './NewsletterForm'
 
 const COLUMNS = [
   {
-    title: 'Shop',
+    title: 'Product',
     links: [
-      { label: 'All formulas', href: '/shop' },
-      { label: 'Sleep', href: '/shop?category=Sleep' },
-      { label: 'Focus', href: '/shop?category=Focus' },
-      { label: 'Daily', href: '/shop?category=Daily' },
+      { label: 'Retatrutide Sublingual', href: '/product/retatrutide-sublingual' },
+      { label: 'The science', href: '/pages/specs' },
     ],
   },
   {
     title: 'Support',
     links: [
       { label: 'Shipping & returns', href: '/pages/shipping-returns' },
-      { label: '30-day guarantee', href: '/pages/warranty' },
-      { label: 'Quality & testing', href: '/pages/specs' },
+      { label: 'Guarantee', href: '/pages/warranty' },
       { label: 'Contact', href: '/pages/contact' },
     ],
   },
@@ -42,7 +39,7 @@ export function Footer() {
           <div>
             <p className="label-accent">Newsletter</p>
             <h2 className="mt-3 font-display text-3xl font-bold leading-[1.05] text-balance text-ink md:text-[2.5rem]">
-              Formula notes, drops, the&nbsp;occasional deep-dive.
+              Formulation science, restock alerts, occasional deep-dives.
             </h2>
             <p className="mt-3 max-w-md text-sm text-ink-soft">
               One email a month, max. Unsubscribe with one click.

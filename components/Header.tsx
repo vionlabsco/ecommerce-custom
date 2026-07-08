@@ -7,11 +7,10 @@ import { SearchToggle } from './SearchBar'
 import { site } from '@/lib/site'
 
 const NAV = [
-  { label: 'Shop', href: '/shop' },
-  { label: 'Sleep', href: '/shop?category=Sleep' },
-  { label: 'Focus', href: '/shop?category=Focus' },
-  { label: 'Daily', href: '/shop?category=Daily' },
-  { label: 'Quality', href: '/pages/specs' },
+  { label: 'Product', href: '/product/retatrutide-sublingual' },
+  { label: 'Science', href: '/pages/specs' },
+  { label: 'About', href: '/pages/about' },
+  { label: 'Contact', href: '/pages/contact' },
 ]
 
 function BagIcon() {
@@ -41,11 +40,11 @@ export function Header() {
       <div className="border-b border-line bg-surface">
         <div className="mx-auto flex max-w-shell items-center justify-center gap-3 px-5 py-2 text-ink-soft md:px-8">
           <span className="text-[10.5px] font-medium uppercase tracking-widest2">
-            Free shipping over $50
+            Sublingual peptide therapy
           </span>
           <span className="text-accent">●</span>
           <span className="text-[10.5px] font-medium uppercase tracking-widest2">
-            30-day guarantee
+            Non-invasive
           </span>
           <span className="hidden text-accent sm:inline">●</span>
           <span className="hidden text-[10.5px] font-medium uppercase tracking-widest2 sm:inline">

@@ -1,76 +1,114 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import { ProductCard } from '@/components/ProductCard'
-import { ProductImage } from '@/components/ProductImage'
 import { Reveal } from '@/components/Reveal'
-import { getAllProducts, getCategories } from '@/lib/products'
+import { getAllProducts } from '@/lib/products'
 import { site } from '@/lib/site'
 
 export const revalidate = 60
 
-// Placeholder editorial content — client replaces via admin or by editing this file.
-const GOAL_TILES = [
-  { name: 'Sleep', blurb: 'Fall asleep. Stay asleep.' },
-  { name: 'Focus', blurb: 'Clean, jitter-free clarity.' },
-  { name: 'Immunity', blurb: 'Baseline defence, daily.' },
-  { name: 'Energy', blurb: 'Sustained. No crash.' },
-  { name: 'Recovery', blurb: 'For the day after.' },
-  { name: 'Daily', blurb: 'The essentials, one dose.' },
+// Editorial constants — all copy here is a starting draft. Client's medical +
+// legal team must review before launch. Do not make efficacy or clinical claims
+// beyond what regulatory review permits in your jurisdiction.
+
+const EDITORIAL = [
+  {
+    src: '/product/retatrutide-hero.png',
+    alt: 'Retatrutide Sublingual bottle with product details',
+    label: 'The bottle',
+    heading: 'Retatrutide Sublingual',
+    body: '30 mL amber glass. Pump-metered sublingual spray. 6 mg per dose.',
+  },
+  {
+    src: '/product/retatrutide-editorial.png',
+    alt: 'Retatrutide Sublingual against a molecular-pattern background',
+    label: 'The peptide',
+    heading: 'A ~4,700 Da peptide',
+    body: 'Triple agonist — GIP, GLP-1, and Glucagon receptors, in one molecule.',
+  },
+  {
+    src: '/product/retatrutide-pair.png',
+    alt: 'Two Retatrutide Sublingual bottles',
+    label: 'The dose',
+    heading: '2.5 mg per spray',
+    body: 'Two sprays under the tongue. That is the whole dose. No syringe, no clinic.',
+  },
 ]
 
 const FORM_BENEFITS = [
-  { title: 'Bioavailable form', body: 'Micro-dosed, fast-release. No horse pills.' },
-  { title: 'Clean label', body: 'No fillers, no dyes, no proprietary blends.' },
-  { title: 'Made for daily', body: 'Small enough to actually take. Every day.' },
-  { title: 'Third-party tested', body: 'Every batch, published, no exceptions.' },
+  {
+    title: 'Nanoemulsion protects the peptide',
+    body: 'The SNEDDS platform encapsulates retatrutide the moment it hits saliva, shielding it from enzymatic degradation.',
+  },
+  {
+    title: 'Rapid sublingual uptake',
+    body: 'Ultra-fine droplets cross the vascularized oral mucosa directly into systemic circulation.',
+  },
+  {
+    title: 'Bypasses first-pass metabolism',
+    body: 'Skips the stomach, skips the liver — the active ingredient reaches the bloodstream intact.',
+  },
+  {
+    title: 'Non-invasive, at-home',
+    body: 'No cold chain, no refrigeration reminders, no needles. Two sprays under the tongue.',
+  },
 ]
 
-const TESTIMONIALS = [
+const HOW_IT_WORKS = [
+  { name: 'Spray under the tongue', blurb: 'Two metered sprays. Hold for 30 seconds.' },
+  { name: 'Nanoemulsion forms', blurb: 'Peptide-loaded droplets, instantly, on contact with saliva.' },
+  { name: 'Crosses the mucosa', blurb: 'The sublingual lining is highly vascularized — uptake is direct.' },
+  { name: 'Systemic delivery', blurb: 'The active peptide reaches the bloodstream. No injection.' },
+]
+
+const CLINICAL_NOTES = [
   {
-    quote: 'It just… works. I stopped noticing I was taking it, and noticed I was sleeping.',
-    who: 'Ana R.',
-    role: 'On Sleep, 4 months',
+    stat: '−6 lb',
+    label: 'over 63 days',
+    body: 'A single healthy volunteer, alternating 6 mg BID and 6 mg QD across nine weeks.',
   },
   {
-    quote: 'The first supplement my partner and I actually finished the bottle of.',
-    who: 'Devon K.',
-    role: 'On Daily, 6 months',
+    stat: '−3.4%',
+    label: 'total body weight',
+    body: 'From 178 lb (80.7 kg) at baseline to 172 lb (78.0 kg) at day 63.',
   },
   {
-    quote: 'Focus without the coffee shakes. Genuinely surprised.',
-    who: 'Priya M.',
-    role: 'On Focus, 2 months',
+    stat: '0',
+    label: 'reported GI adverse events',
+    body: 'No nausea, vomiting, bloating, or abdominal pain over the observation period.',
   },
 ]
 
 const FAQ = [
   {
-    q: 'How long until I feel it?',
-    a: 'Most formulas take 2–3 weeks of daily use before you notice the effect. Sleep and focus tend to be quicker; recovery and immunity are slower builds.',
+    q: 'What is retatrutide?',
+    a: 'Retatrutide is an investigational triple-agonist peptide — it activates the GIP, GLP-1, and glucagon receptors. It is being studied for weight and metabolic support and is currently only available in the U.S. as an injectable in clinical trials.',
   },
   {
-    q: "What's actually in it?",
-    a: 'Every ingredient and dose is on the label. No proprietary blends, no filler names. If we can\'t list the milligrams, it\'s not in the formula.',
+    q: 'How is a sublingual formulation different from an injection?',
+    a: "Injections bypass the stomach by design — they have to, because retatrutide's ~4,700 Da peptide is too fragile to survive digestion. Our SNEDDS platform achieves the same goal a different way: it forms a protective nanoemulsion in the mouth, so the peptide crosses the sublingual mucosa directly into circulation. No needle, no refrigeration, no clinic visit.",
   },
   {
-    q: 'Do I need to take it every day?',
-    a: 'Yes — these are daily formulas, dosed for a compounding effect. Skipping days undoes the build-up.',
+    q: 'What is SNEDDS?',
+    a: 'Self-Nanoemulsifying Drug Delivery System — a pharmaceutical platform that spontaneously forms ultra-fine droplets on contact with fluid. It is used to deliver drugs (peptides, poorly-soluble small molecules) that would otherwise be degraded or poorly absorbed through the oral route.',
   },
   {
-    q: 'Is it third-party tested?',
-    a: 'Every batch is tested by an independent lab for potency, purity, and contaminants. Test results are linked on each product page.',
+    q: 'How do I take it?',
+    a: 'Two metered sprays under the tongue, once or twice a day, per your provider\'s direction. Hold for 30 seconds before swallowing so the peptide has time to cross the mucosa.',
   },
   {
-    q: 'Shipping and returns?',
-    a: 'Free shipping over $50. If your first bottle doesn\'t work for you, send it back — even empty — for a full refund within 30 days.',
+    q: 'Is this a substitute for medical care?',
+    a: 'No. This product should be used only as part of a supervised metabolic-health plan. Consult a licensed clinician before starting, especially if you are pregnant, nursing, taking medication, or managing a medical condition.',
+  },
+  {
+    q: 'Do you ship internationally?',
+    a: 'Placeholder — this depends on the jurisdictional model chosen by Vion Labs. Client to finalise shipping regions + jurisdictional restrictions before launch.',
   },
 ]
 
 export default async function HomePage() {
   const all = await getAllProducts()
-  const categories = await getCategories()
-  const featured = all.filter((p) => p.featured).slice(0, 4)
-  const editorial = (featured.length > 0 ? featured : all).slice(0, 3)
-  const heroAccent = all.find((p) => p.featured) ?? all[0]
+  const hero = all[0]
 
   return (
     <>
@@ -82,35 +120,35 @@ export default async function HomePage() {
             className="animate-rise text-[11px] font-semibold uppercase tracking-widest2 text-ice"
             style={{ animationDelay: '40ms' }}
           >
-            {site.brand}// Daily Formulas
+            {site.brand}// Sublingual peptide therapy
           </p>
           <h1
             className="animate-rise mt-6 max-w-5xl font-display text-[clamp(2.75rem,10vw,7.5rem)] font-bold leading-[0.9] tracking-tightest text-balance text-paper"
             style={{ animationDelay: '120ms' }}
           >
-            Small formulas.
+            Peptide therapy.
             <br />
-            <span className="text-ice">Made to absorb.</span>
+            <span className="text-ice">Without the needle.</span>
           </h1>
           <p
-            className="animate-rise mt-8 max-w-lg text-base leading-relaxed text-paper-soft md:text-lg"
+            className="animate-rise mt-8 max-w-2xl text-base leading-relaxed text-paper-soft md:text-lg"
             style={{ animationDelay: '220ms' }}
           >
-            A minimalist line of daily supplements — each blend dialed for a single outcome, dosed by the science of what your body actually uses.
+            The first non-invasive sublingual retatrutide — a triple-agonist peptide (GIP · GLP-1 · Glucagon) delivered under the tongue. Bypasses injections, refrigeration, and clinic visits.
           </p>
           <div
             className="animate-rise mt-10 flex flex-wrap items-center gap-3"
             style={{ animationDelay: '320ms' }}
           >
             <Link
-              href="/shop"
+              href={hero ? `/product/${hero.slug}` : '/shop'}
               className="inline-flex items-center gap-2 rounded-md bg-ice px-7 py-4 text-[12px] font-bold uppercase tracking-widest2 text-navy transition-colors hover:bg-paper"
             >
-              Shop the line
+              Order Retatrutide Sublingual
               <span aria-hidden>→</span>
             </Link>
             <Link
-              href="#form"
+              href="#how-it-works"
               className="inline-flex items-center gap-2 rounded-md border border-paper/25 px-6 py-4 text-[12px] font-bold uppercase tracking-widest2 text-paper transition-colors hover:border-ice hover:text-ice"
             >
               How it works
@@ -124,84 +162,74 @@ export default async function HomePage() {
           >
             <div>
               <dt className="text-[10px] font-semibold uppercase tracking-widest2 text-paper-mute">
-                Bioavailability
+                Delivery
               </dt>
-              <dd className="mt-2 font-display text-lg font-bold text-paper">
-                Micro-dosed
-              </dd>
+              <dd className="mt-2 font-display text-lg font-bold text-paper">Sublingual</dd>
             </div>
             <div>
               <dt className="text-[10px] font-semibold uppercase tracking-widest2 text-paper-mute">
-                Testing
+                Active
               </dt>
-              <dd className="mt-2 font-display text-lg font-bold text-paper">
-                Third-party, per batch
-              </dd>
+              <dd className="mt-2 font-display text-lg font-bold text-paper">Retatrutide 6 mg</dd>
             </div>
             <div className="col-span-2 sm:col-span-1">
               <dt className="text-[10px] font-semibold uppercase tracking-widest2 text-paper-mute">
-                Guarantee
+                Testing
               </dt>
-              <dd className="mt-2 font-display text-lg font-bold text-paper">
-                30-day, no questions
-              </dd>
+              <dd className="mt-2 font-display text-lg font-bold text-paper">Third-party, per batch</dd>
             </div>
           </dl>
         </div>
       </section>
 
-      {/* ── Editorial 3-up ────────────────────────────────────────────── */}
-      {editorial.length > 0 && (
-        <section className="mx-auto max-w-shell px-5 py-20 md:px-8 md:py-28">
-          <div className="max-w-2xl">
-            <p className="text-[11px] font-semibold uppercase tracking-widest2 text-accent">
-              The Line
-            </p>
-            <h2 className="mt-3 font-display text-3xl font-bold leading-[1.05] tracking-tightest text-balance text-ink md:text-5xl">
-              Built for the body&apos;s
-              <br />
-              actual chemistry.
-            </h2>
-          </div>
-          <div className="mt-12 grid gap-5 md:grid-cols-3 md:gap-6">
-            {editorial.map((p, i) => (
-              <Reveal key={p.id} delay={i * 90}>
-                <Link href={`/product/${p.slug}`} className="group block">
-                  <div className="overflow-hidden rounded-lg border border-line bg-surface">
-                    <ProductImage
-                      name={p.name}
-                      accent={p.accent}
-                      category={p.category}
-                      image={p.image}
-                      className="aspect-[4/5] w-full transition-transform duration-[1200ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.04]"
-                    />
-                  </div>
-                  <p className="mt-4 text-[11px] font-semibold uppercase tracking-widest2 text-ink-mute">
-                    {p.category}
-                  </p>
-                  <p className="mt-1 font-display text-xl font-bold text-ink">{p.name}</p>
-                  <p className="mt-1 text-sm text-ink-soft">{p.shortDescription}</p>
-                </Link>
-              </Reveal>
-            ))}
-          </div>
-        </section>
-      )}
+      {/* ── Editorial 3-up (product shots) ────────────────────────────── */}
+      <section className="mx-auto max-w-shell px-5 py-20 md:px-8 md:py-28">
+        <div className="max-w-2xl">
+          <p className="text-[11px] font-semibold uppercase tracking-widest2 text-accent">
+            The formulation
+          </p>
+          <h2 className="mt-3 font-display text-3xl font-bold leading-[1.05] tracking-tightest text-balance text-ink md:text-5xl">
+            Engineered to be taken.
+          </h2>
+        </div>
+        <div className="mt-12 grid gap-5 md:grid-cols-3 md:gap-6">
+          {EDITORIAL.map((tile, i) => (
+            <Reveal key={tile.label} delay={i * 90}>
+              <div className="group block">
+                <div className="overflow-hidden rounded-lg border border-line bg-surface">
+                  <Image
+                    src={tile.src}
+                    alt={tile.alt}
+                    width={1200}
+                    height={720}
+                    className="aspect-[5/3] w-full object-cover transition-transform duration-[1200ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.04]"
+                  />
+                </div>
+                <p className="mt-4 text-[11px] font-semibold uppercase tracking-widest2 text-ink-mute">
+                  {tile.label}
+                </p>
+                <p className="mt-1 font-display text-xl font-bold text-ink">{tile.heading}</p>
+                <p className="mt-1 text-sm text-ink-soft">{tile.body}</p>
+              </div>
+            </Reveal>
+          ))}
+        </div>
+      </section>
 
-      {/* ── "Form is the dose" ────────────────────────────────────────── */}
-      <section id="form" className="border-y border-line bg-surface">
+      {/* ── "Form is the dose" — SNEDDS science ──────────────────────── */}
+      <section className="border-y border-line bg-surface">
         <div className="mx-auto grid max-w-shell items-center gap-12 px-5 py-20 md:grid-cols-12 md:gap-16 md:px-8 md:py-28">
           <div className="md:col-span-6 md:order-2">
             <p className="text-[11px] font-semibold uppercase tracking-widest2 text-accent">
-              Form is the dose
+              SNEDDS delivery platform
             </p>
             <h2 className="mt-3 font-display text-3xl font-bold leading-[1.05] tracking-tightest text-balance text-ink md:text-5xl">
-              What good is a formula
+              The peptide is only
               <br />
-              if your body can&apos;t use it?
+              as good as its delivery.
             </h2>
             <p className="mt-6 max-w-md text-base leading-relaxed text-ink-soft">
-              Most supplements are dosed for the label, not for absorption. Ours are engineered around what actually crosses into your bloodstream — and skip everything that doesn&apos;t.
+              Retatrutide is a ~4,700 Dalton peptide — too large to survive digestion, too fragile for a pill. Injection works, but it's cold-chain, painful, and clinical. Our proprietary Self-Nanoemulsifying Drug Delivery System reaches the bloodstream a different way.
             </p>
             <ul className="mt-8 space-y-5">
               {FORM_BENEFITS.map((b) => (
@@ -217,129 +245,144 @@ export default async function HomePage() {
           </div>
           <div className="md:col-span-6 md:order-1">
             <div className="overflow-hidden rounded-lg border border-line bg-paper">
-              <ProductImage
-                name={heroAccent?.name ?? site.brand}
-                accent={heroAccent?.accent ?? '#1e3a8a'}
-                category={heroAccent?.category ?? 'Formula'}
-                image={heroAccent?.image}
-                className="aspect-[5/6] w-full"
+              <Image
+                src="/product/retatrutide-portrait.png"
+                alt="Retatrutide Sublingual bottle"
+                width={1024}
+                height={1024}
+                className="aspect-square w-full object-cover"
               />
             </div>
           </div>
         </div>
       </section>
 
-      {/* ── Six goals ─────────────────────────────────────────────────── */}
-      <section className="mx-auto max-w-shell px-5 py-20 md:px-8 md:py-28">
+      {/* ── How it works — 4 steps ────────────────────────────────────── */}
+      <section id="how-it-works" className="mx-auto max-w-shell px-5 py-20 md:px-8 md:py-28">
         <div className="flex flex-col items-start justify-between gap-6 md:flex-row md:items-end">
           <div className="max-w-xl">
             <p className="text-[11px] font-semibold uppercase tracking-widest2 text-accent">
-              Six goals
+              How it works
             </p>
             <h2 className="mt-3 font-display text-3xl font-bold leading-[1.05] tracking-tightest text-balance text-ink md:text-5xl">
-              One formula line.
+              Four steps.
+              <br />
+              No injection.
             </h2>
           </div>
           <p className="max-w-sm text-sm text-ink-soft">
-            Pick the one that matches what you&apos;re actually chasing. Each is a single, focused blend — no everything-supplements.
+            Two metered sprays under the tongue. Hold for 30 seconds. The nanoemulsion does the rest.
           </p>
         </div>
-        <div className="mt-12 grid gap-3 sm:grid-cols-2 md:mt-14 md:grid-cols-3 md:gap-4">
-          {GOAL_TILES.map((tile, i) => {
-            const catMatch = categories.find(
-              (c) => c.toLowerCase() === tile.name.toLowerCase(),
-            )
-            const href = catMatch
-              ? `/shop?category=${encodeURIComponent(catMatch)}`
-              : '/shop'
-            return (
-              <Reveal key={tile.name} delay={i * 60}>
-                <Link
-                  href={href}
-                  className="group flex h-full flex-col justify-between rounded-lg border border-line bg-paper p-6 transition-colors hover:border-accent md:p-7"
-                >
-                  <div>
-                    <span className="text-[10px] font-semibold uppercase tracking-widest2 text-ink-mute">
-                      0{i + 1}
-                    </span>
-                    <p className="mt-4 font-display text-2xl font-bold text-ink md:text-3xl">
-                      {tile.name}
-                    </p>
-                    <p className="mt-2 text-sm text-ink-soft">{tile.blurb}</p>
-                  </div>
-                  <span className="mt-8 inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-widest2 text-accent">
-                    Shop {tile.name.toLowerCase()}
-                    <span aria-hidden className="transition-transform group-hover:translate-x-1">
-                      →
-                    </span>
+        <div className="mt-12 grid gap-3 sm:grid-cols-2 md:mt-14 md:grid-cols-4 md:gap-4">
+          {HOW_IT_WORKS.map((step, i) => (
+            <Reveal key={step.name} delay={i * 60}>
+              <div className="flex h-full flex-col justify-between rounded-lg border border-line bg-paper p-6 md:p-7">
+                <div>
+                  <span className="text-[10px] font-semibold uppercase tracking-widest2 text-ink-mute">
+                    Step 0{i + 1}
                   </span>
-                </Link>
-              </Reveal>
-            )
-          })}
+                  <p className="mt-4 font-display text-lg font-bold text-ink md:text-xl">
+                    {step.name}
+                  </p>
+                  <p className="mt-2 text-sm text-ink-soft">{step.blurb}</p>
+                </div>
+              </div>
+            </Reveal>
+          ))}
         </div>
       </section>
 
-      {/* ── Featured products (only if catalog present) ───────────────── */}
-      {featured.length > 0 && (
+      {/* ── Featured product (single-SKU) ─────────────────────────────── */}
+      {hero && (
         <section className="border-t border-line bg-surface-2">
           <div className="mx-auto max-w-shell px-5 py-20 md:px-8 md:py-28">
             <div className="flex items-end justify-between gap-4">
               <div>
                 <p className="text-[11px] font-semibold uppercase tracking-widest2 text-accent">
-                  Featured
+                  Available now
                 </p>
                 <h2 className="mt-3 font-display text-3xl font-bold text-ink md:text-4xl">
-                  This month&apos;s edit
+                  Order the formulation
                 </h2>
               </div>
               <Link
                 href="/shop"
                 className="hidden shrink-0 text-[11px] font-semibold uppercase tracking-widest2 text-ink-soft transition-colors hover:text-accent sm:block"
               >
-                View all →
+                Product page →
               </Link>
             </div>
-            <div className="mt-10 grid grid-cols-2 gap-x-4 gap-y-8 md:grid-cols-4 md:gap-x-5 md:gap-y-10">
-              {featured.map((p, i) => (
-                <Reveal key={p.id} delay={i * 80}>
-                  <ProductCard product={p} />
-                </Reveal>
-              ))}
+            <div className="mt-10 grid grid-cols-1 gap-6 md:grid-cols-4">
+              <Reveal delay={0}>
+                <ProductCard product={hero} />
+              </Reveal>
+              <div className="md:col-span-3 rounded-lg border border-line bg-paper p-6 md:p-8">
+                <p className="text-[11px] font-semibold uppercase tracking-widest2 text-ink-mute">
+                  {hero.category}
+                </p>
+                <p className="mt-2 font-display text-2xl font-bold text-ink md:text-3xl">
+                  {hero.name}
+                </p>
+                <p className="mt-3 text-sm leading-relaxed text-ink-soft md:text-base">
+                  {hero.shortDescription}
+                </p>
+                <ul className="mt-6 grid gap-2 sm:grid-cols-2">
+                  {(hero.details ?? []).slice(0, 6).map((d) => (
+                    <li key={d} className="flex gap-3 text-sm text-ink-soft">
+                      <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-accent" aria-hidden />
+                      <span>{d}</span>
+                    </li>
+                  ))}
+                </ul>
+                <Link
+                  href={`/product/${hero.slug}`}
+                  className="mt-8 inline-flex items-center gap-2 rounded-md bg-accent px-6 py-3 text-[12px] font-bold uppercase tracking-widest2 text-paper transition-colors hover:bg-accent-hover"
+                >
+                  View product
+                  <span aria-hidden>→</span>
+                </Link>
+              </div>
             </div>
           </div>
         </section>
       )}
 
-      {/* ── Testimonials ──────────────────────────────────────────────── */}
+      {/* ── Preliminary observations (replaces testimonials) ──────────── */}
       <section className="mx-auto max-w-shell px-5 py-20 md:px-8 md:py-28">
         <div className="max-w-2xl">
           <p className="text-[11px] font-semibold uppercase tracking-widest2 text-accent">
-            In their words
+            Preliminary observations
           </p>
           <h2 className="mt-3 font-display text-3xl font-bold leading-[1.05] tracking-tightest text-balance text-ink md:text-5xl">
-            Real outcomes,
+            Nine weeks.
             <br />
-            in their own words.
+            One healthy volunteer.
           </h2>
+          <p className="mt-6 text-sm leading-relaxed text-ink-soft md:text-base">
+            Initial observations from a single healthy volunteer receiving the proprietary sublingual retatrutide formulation over a 63-day period. Alternating dosing: 6 mg twice daily (weeks 1, 3, 5, 7, 9) and 6 mg once daily (weeks 2, 4, 6, 8).
+          </p>
         </div>
         <div className="mt-12 grid gap-4 md:grid-cols-3 md:gap-5">
-          {TESTIMONIALS.map((t, i) => (
-            <Reveal key={t.who} delay={i * 80}>
+          {CLINICAL_NOTES.map((note, i) => (
+            <Reveal key={note.label} delay={i * 80}>
               <figure className="flex h-full flex-col justify-between rounded-lg border border-line bg-paper p-6 md:p-8">
-                <blockquote className="font-display text-lg font-medium leading-snug text-balance text-ink md:text-xl">
-                  &ldquo;{t.quote}&rdquo;
-                </blockquote>
-                <figcaption className="mt-8 border-t border-line pt-4">
-                  <p className="font-display text-sm font-bold text-ink">{t.who}</p>
-                  <p className="mt-0.5 text-[11px] uppercase tracking-widest2 text-ink-mute">
-                    {t.role}
+                <div>
+                  <p className="font-display text-5xl font-bold tracking-tightest text-ink md:text-6xl">
+                    {note.stat}
                   </p>
-                </figcaption>
+                  <p className="mt-2 text-[11px] font-semibold uppercase tracking-widest2 text-accent">
+                    {note.label}
+                  </p>
+                </div>
+                <p className="mt-6 text-sm leading-relaxed text-ink-soft">{note.body}</p>
               </figure>
             </Reveal>
           ))}
         </div>
+        <p className="mt-10 max-w-3xl text-[12px] text-ink-mute">
+          Placeholder observational data — not a controlled clinical trial and not intended to imply clinical efficacy. Individual results will vary. Replace with peer-reviewed data and appropriate regulatory language before launch.
+        </p>
       </section>
 
       {/* ── FAQ ───────────────────────────────────────────────────────── */}
@@ -355,7 +398,7 @@ export default async function HomePage() {
               </h2>
               <p className="mt-6 text-sm text-ink-soft">
                 Something else on your mind?{' '}
-                <Link href="/contact" className="underline underline-offset-4 hover:text-accent">
+                <Link href="/pages/contact" className="underline underline-offset-4 hover:text-accent">
                   Send us a note
                 </Link>
                 .
@@ -396,21 +439,21 @@ export default async function HomePage() {
               Ready when you are
             </p>
             <h2 className="mt-4 font-display text-4xl font-bold leading-[1.02] tracking-tightest text-balance text-paper md:text-6xl">
-              Ready to feel the difference?
+              A peptide you can actually take.
             </h2>
             <p className="mt-6 text-base leading-relaxed text-paper-soft md:text-lg">
-              Start with one formula. If the first bottle doesn&apos;t change something, send it back.
+              Two sprays under the tongue. That's the whole thing.
             </p>
             <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
               <Link
-                href="/shop"
+                href={hero ? `/product/${hero.slug}` : '/shop'}
                 className="inline-flex items-center gap-2 rounded-md bg-ice px-7 py-4 text-[12px] font-bold uppercase tracking-widest2 text-navy transition-colors hover:bg-paper"
               >
-                Shop the line
+                Order the formulation
                 <span aria-hidden>→</span>
               </Link>
               <Link
-                href="/contact"
+                href="/pages/contact"
                 className="inline-flex items-center gap-2 rounded-md border border-paper/25 px-6 py-4 text-[12px] font-bold uppercase tracking-widest2 text-paper transition-colors hover:border-ice hover:text-ice"
               >
                 Talk to us
@@ -425,13 +468,13 @@ export default async function HomePage() {
         <div className="mx-auto max-w-shell px-5 md:px-8">
           <div className="grid divide-y divide-line text-left sm:grid-cols-3 sm:divide-x sm:divide-y-0">
             {[
-              { t: 'Free shipping', s: 'On every order over $50' },
-              { t: '30-day returns', s: 'Empty bottle, no questions' },
-              { t: 'Made properly', s: 'Third-party tested every batch' },
+              { t: 'Pharmaceutical grade', s: 'FDA IID-listed excipients only' },
+              { t: 'Third-party tested', s: 'Independent lab, every batch' },
+              { t: 'Non-invasive', s: 'No injection, no cold chain, no clinic' },
             ].map((v) => (
               <div key={v.t} className="px-2 py-8 sm:px-6 sm:py-10">
                 <p className="text-[11px] font-semibold uppercase tracking-widest2 text-accent">
-                  Promise
+                  Standard
                 </p>
                 <p className="mt-2 font-display text-xl font-bold text-ink">{v.t}</p>
                 <p className="mt-1.5 text-sm text-ink-soft">{v.s}</p>

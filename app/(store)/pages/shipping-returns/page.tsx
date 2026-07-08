@@ -45,12 +45,13 @@ export default function ShippingReturnsPage() {
       <h2 className="mt-10 font-display text-xl font-bold text-ink">Returns</h2>
       <p>
         Unopened bottles can be returned within <strong>30 days</strong> of
-        delivery for a full refund. For your first purchase of any formula, we
-        accept opened and even empty bottles — see our{' '}
+        delivery for a full refund, less shipping. Opened bottles of a
+        pharmaceutical-grade sublingual formulation cannot be returned once
+        dispensed — see our{' '}
         <a href="/pages/warranty" className="text-accent hover:underline">
-          30-day guarantee
+          guarantee
         </a>
-        .
+        {' '}for damaged / defective bottle replacement policy.
       </p>
       <p>
         Email us at{' '}

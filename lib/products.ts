@@ -15,14 +15,7 @@ function id(): string {
   return randomBytes(6).toString('hex')
 }
 
-export const CATEGORIES = [
-  'Sleep',
-  'Focus',
-  'Immunity',
-  'Energy',
-  'Recovery',
-  'Daily',
-] as const
+export const CATEGORIES = ['Sublingual'] as const
 
 export type Category = string
 
@@ -62,136 +55,36 @@ export type Product = {
   stock?: number
 }
 
-// Placeholder catalog. Names, copy, prices, flavors, and pack sizes are all
-// intentionally generic — replace via the admin (or edit here) once the client
-// finalises the line. Blue-family `accent` hexes let the monogram tiles read
-// as one coherent range in the store grid.
+// Single-product catalog — Vion Labs' Retatrutide Sublingual formulation.
+// Price + stock are placeholders; client sets the real values via /admin.
+// All medical/regulatory copy in `description` is a starting draft — the
+// client's legal + medical team must review before launch.
 export const PRODUCTS: Product[] = [
   {
-    id: 'p_sleep_formula',
-    slug: 'sleep-formula',
-    name: 'Sleep Formula',
-    category: 'Sleep',
-    priceCents: 3400,
-    shortDescription: 'A nightly micro-gummy for falling asleep — and staying there.',
+    id: 'p_retatrutide_sublingual',
+    slug: 'retatrutide-sublingual',
+    name: 'Retatrutide Sublingual',
+    category: 'Sublingual',
+    priceCents: 29900,
+    shortDescription:
+      'The first non-invasive sublingual retatrutide — a triple-agonist peptide delivered under the tongue. No needles.',
     description:
-      'A dialed sleep blend designed to shorten how long it takes to drift off and stabilise the second half of the night. Non-habit-forming, no morning grog. Take two, twenty minutes before bed.',
+      'A proprietary sublingual formulation of retatrutide, the next-generation triple-agonist peptide (GIP · GLP-1 · Glucagon) engineered for weight and metabolic support. Delivered under the tongue via our SNEDDS nanoemulsion platform, the peptide is protected from enzymatic degradation and rapidly absorbed through the sublingual mucosa — bypassing the stomach, first-pass metabolism, and the need for injection. Pharmaceutical-grade excipients, non-irritating, designed for daily at-home use.',
     details: [
-      'Two-gummy dose, 20 min before bed',
-      'Non-habit-forming — no morning grog',
-      '30 nights per bottle',
-      'Third-party tested, every batch',
+      '6 mg retatrutide per dose (2.5 mg per spray)',
+      'Triple-agonist peptide — GIP, GLP-1, and Glucagon receptors',
+      'Sublingual SNEDDS nanoemulsion platform — no injection required',
+      'Pharmaceutical-grade excipients (FDA IID-listed)',
+      'Non-irritating, designed for repeated sublingual administration',
+      '30 mL amber glass bottle · 30-day supply at standard dosing',
     ],
     colors: [],
     sizes: [],
-    accent: '#1e3a8a',
-    badge: 'Bestseller',
+    accent: '#0b1f3a',
+    image: '/product/retatrutide-hero.png',
+    badge: 'New',
     featured: true,
-    stock: 60,
-  },
-  {
-    id: 'p_focus_blend',
-    slug: 'focus-blend',
-    name: 'Focus Blend',
-    category: 'Focus',
-    priceCents: 3200,
-    shortDescription: 'Clean, jitter-free clarity — for the work you actually mean to do.',
-    description:
-      'A stack of nootropic actives that sharpens attention without the coffee spike-and-crash. Formulated for two-to-three-hour cognitive blocks. One micro-tab in the morning, one after lunch if you need it.',
-    details: [
-      'No caffeine, no jitters',
-      'Onset in 30–45 minutes',
-      '60 micro-tabs per bottle',
-      'Third-party tested, every batch',
-    ],
-    colors: [],
-    sizes: [],
-    accent: '#3b5bdb',
-    featured: true,
-    stock: 48,
-  },
-  {
-    id: 'p_immunity_daily',
-    slug: 'immunity-daily',
-    name: 'Immunity Daily',
-    category: 'Immunity',
-    priceCents: 2800,
-    shortDescription: 'Baseline defence, one gummy a day. For the sniffle you’d rather skip.',
-    description:
-      'A daily immune-support gummy stacking the vitamins, minerals, and botanicals your body actually uses to keep the baseline strong. Not a cure — a floor. Take one with breakfast.',
-    details: [
-      'One-a-day, easy to remember',
-      'Real doses, no proprietary blends',
-      '60 gummies per bottle',
-      'Third-party tested, every batch',
-    ],
-    colors: [],
-    sizes: [],
-    accent: '#4c9aff',
-    featured: true,
-    stock: 80,
-  },
-  {
-    id: 'p_energy_ramp',
-    slug: 'energy-ramp',
-    name: 'Energy Ramp',
-    category: 'Energy',
-    priceCents: 3000,
-    shortDescription: 'Sustained energy that ramps up, holds, and doesn’t crash.',
-    description:
-      'Slow-release energy without the caffeine cliff. A blend of adaptogens, B-complex, and paced caffeine that gets you to 3pm without the shakes. One tab in the morning.',
-    details: [
-      'Slow-release, no crash',
-      'Low-dose caffeine (60mg) + adaptogens',
-      '30 tabs per bottle',
-      'Third-party tested, every batch',
-    ],
-    colors: [],
-    sizes: [],
-    accent: '#2563eb',
-    featured: true,
-    stock: 55,
-  },
-  {
-    id: 'p_recovery_complex',
-    slug: 'recovery-complex',
-    name: 'Recovery Complex',
-    category: 'Recovery',
-    priceCents: 3600,
-    shortDescription: 'For the day after. Muscle, joint, and inflammation support in one dose.',
-    description:
-      'A post-effort recovery capsule stacking anti-inflammatories, magnesium, and joint-support amino acids. Take two in the evening on training days. Two capsules per dose.',
-    details: [
-      'Two capsules, evening of training',
-      'Magnesium + curcumin + collagen peptides',
-      '60 capsules per bottle',
-      'Third-party tested, every batch',
-    ],
-    colors: [],
-    sizes: [],
-    accent: '#5b8fd9',
-    stock: 42,
-  },
-  {
-    id: 'p_daily_baseline',
-    slug: 'daily-baseline',
-    name: 'Daily Baseline',
-    category: 'Daily',
-    priceCents: 4200,
-    shortDescription: 'The essentials your diet keeps missing — in one honest dose.',
-    description:
-      'A daily multivitamin built to fill the gaps most modern diets leave behind. Real doses of vitamin D, B-complex, magnesium, and omega-3. Two capsules with your first meal.',
-    details: [
-      'Two capsules with breakfast',
-      'Fills real gaps, not marketing gaps',
-      '60 capsules per bottle',
-      'Third-party tested, every batch',
-    ],
-    colors: [],
-    sizes: [],
-    accent: '#3e5c76',
-    featured: true,
-    stock: 90,
+    stock: 100,
   },
 ]
 

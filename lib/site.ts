@@ -6,9 +6,9 @@
 export const site = {
   /** Brand wordmark — matches the brand-package casing ("Vion Labs"). */
   brand: 'Vion Labs',
-  tagline: 'Small formulas. Made to absorb.',
+  tagline: 'Peptide therapy. Without the needle.',
   description:
-    'Vion Labs formulates a minimalist line of daily supplements — each blend dialed for a single outcome, dosed by the science of what your body actually uses.',
+    'Vion Labs develops non-invasive peptide delivery technology. Our flagship formulation delivers retatrutide — a triple-agonist metabolic peptide — sublingually, bypassing injections entirely.',
 
   /** Currency + money config. Prices throughout the app are stored in cents. */
   currency: 'USD',

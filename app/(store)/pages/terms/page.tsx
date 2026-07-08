@@ -31,11 +31,18 @@ export default function TermsPage() {
 
       <h2 className="mt-10 font-display text-xl font-bold text-ink">Health disclaimer</h2>
       <p>
-        Products sold on this site are dietary supplements and are not intended
-        to diagnose, treat, cure, or prevent any disease. These statements have
-        not been evaluated by the FDA. Consult a healthcare professional before
-        starting any new supplement, especially if you are pregnant, nursing,
-        taking medication, or managing a medical condition.
+        Products sold on this site are pharmaceutical-grade sublingual
+        formulations. They are not intended to diagnose, treat, cure, or prevent
+        any disease. Statements on this site have not been evaluated by the
+        FDA. Consult a licensed healthcare professional before starting any new
+        therapy, especially if you are pregnant, nursing, taking medication, or
+        managing a medical condition.
+      </p>
+      <p>
+        Retatrutide is an investigational peptide currently under clinical
+        evaluation in injectable form. Its use outside an investigational
+        setting is subject to jurisdiction-specific regulation, which
+        {' '}{site.brand} customers are responsible for understanding.
       </p>
 
       <h2 className="mt-10 font-display text-xl font-bold text-ink">Intellectual property</h2>

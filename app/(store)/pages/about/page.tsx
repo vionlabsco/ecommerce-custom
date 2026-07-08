@@ -6,41 +6,48 @@ export const metadata: Metadata = { title: 'About' }
 export default function AboutPage() {
   return (
     <>
-      <p className="label-accent">Our Story</p>
+      <p className="label-accent">Our story</p>
       <h1 className="font-display text-4xl font-bold text-ink md:text-5xl">
-        Small formulas. Made properly.
+        Peptide therapy. Without the needle.
       </h1>
       <p>
-        {site.brand} is a small formula-first studio building daily supplements
-        for the body&apos;s actual chemistry. Each blend is dialed for a single
-        outcome — sleep, focus, immunity, energy, recovery, or the daily baseline
-        — and dosed by the science of what your body actually uses.
+        {site.brand} develops non-invasive peptide delivery technology. Our
+        flagship formulation delivers retatrutide — the triple-agonist metabolic
+        peptide — under the tongue, using a proprietary Self-Nanoemulsifying
+        Drug Delivery System (SNEDDS) instead of an injection.
       </p>
       <p>
-        We don&apos;t do everything-supplements. We don&apos;t hide behind
-        proprietary blends. Every ingredient and dose is on the label; every
-        batch is third-party tested and the results are public.
+        Retatrutide is one of the most promising next-generation metabolic
+        peptides, combining GIP, GLP-1, and glucagon receptor activity in a
+        single molecule. Injectable versions are currently in extensive clinical
+        trials. Our platform is the first to make it available in a needle-free,
+        sublingual liquid form — without sacrificing systemic delivery.
       </p>
       <p>
-        The line is small on purpose. Six formulas, one job each, no filler.
-        That&apos;s the whole catalogue and that&apos;s the point.
-      </p>
-
-      <h2 className="mt-10 font-display text-xl font-bold text-ink">Where we ship</h2>
-      <p>
-        Formulated in-house. Manufactured and third-party tested to GMP standards.
-        Most orders leave the warehouse within 1–2 business days.
+        We are focused on one thing: making effective peptide therapies easier
+        to actually use. That means pharmaceutical-grade excipients, industrial
+        manufacturing standards, third-party testing on every batch, and a
+        product that a patient can take twice a day at home in seconds.
       </p>
 
-      <h2 className="mt-10 font-display text-xl font-bold text-ink">Stay in touch</h2>
+      <h2 className="mt-10 font-display text-xl font-bold text-ink">Our team</h2>
       <p>
-        The fastest way to hear about a new formula is the newsletter at the
-        bottom of any page — one email a month, unsubscribe with one click. Or
-        reach us at{' '}
+        The formulation was developed by a multidisciplinary team of MD- and
+        PhD-level pharmaceutical scientists and physicians, with more than
+        60 years of combined experience in formulation development and
+        non-invasive peptide delivery. Additional detail is available on
+        request — reach us at{' '}
         <a href={`mailto:${site.contactEmail}`} className="text-accent hover:underline">
           {site.contactEmail}
         </a>
         .
+      </p>
+
+      <p className="mt-10 text-[12px] text-ink-mute">
+        This site is a work in progress. Product claims, medical language, and
+        regulatory statements are placeholders pending review by our medical
+        and legal advisors. Not intended to diagnose, treat, cure, or prevent
+        any disease.
       </p>
     </>
   )
