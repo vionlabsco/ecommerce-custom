@@ -27,18 +27,27 @@ export const site = {
 
   /**
    * Default parcel assumptions for shipping-rate quotes when a merchant hasn't
-   * set per-product weight/dimensions. Small-parcel supplement box sized to
-   * fit up to ~4 bottles. Weight scales with item count.
+   * set per-product weight/dimensions.
+   *
+   * Sized for a 30 mL amber glass sublingual bottle in a snug shipping box.
+   * Small enough that dimensional weight ≈ actual weight — FedEx and DHL
+   * charge by max(actualKg, lengthCm*widthCm*heightCm / 5000), so oversized
+   * boxes get billed as heavier packages than they are.
+   *
+   * Empirical: for a 30 mL bottle the real shipping is ~$28-45 CAD via
+   * FedEx International Economy CA→US at these dims, vs ~$247 with the
+   * old 20x15x10 default. If the client ships multi-bottle orders, we may
+   * need to add per-quantity dimension scaling here.
    */
   parcelDefaults: {
-    /** Base packaging weight in grams (empty box + filler). */
-    baseGrams: 250,
-    /** Weight added per line-item unit (one bottle / one pack). */
-    perItemGrams: 100,
-    /** Dimensions in cm. */
-    lengthCm: 20,
-    widthCm: 15,
-    heightCm: 10,
+    /** Base packaging weight in grams (empty box + filler + dropper cap). */
+    baseGrams: 120,
+    /** Weight added per bottle. 30 mL amber glass ≈ 90 g full. */
+    perItemGrams: 90,
+    /** Dimensions in cm — 30 mL bottle in a tight mailer. */
+    lengthCm: 12,
+    widthCm: 8,
+    heightCm: 5,
   },
   social: {
     instagram: 'https://instagram.com',
