@@ -172,8 +172,16 @@ export async function getRates(input: {
   return details.flatMap((d: any) => {
     const code = d.serviceType
     const name = d.serviceName ?? code
-    const shipment = d.ratedShipmentDetails?.[0]
-    const cents = shipment ? money(shipment) : 0
+    // FedEx often returns multiple pricing tiers per service — commonly LIST
+    // (retail rack rate) and ACCOUNT (your negotiated discount). Take the
+    // cheapest so customers see the price the merchant actually pays after
+    // discounts, not the walk-in-counter rack rate.
+    const shipments: any[] = d.ratedShipmentDetails ?? []
+    const cheapest = shipments
+      .map((s) => money(s))
+      .filter((c) => c > 0)
+      .sort((a, b) => a - b)[0]
+    const cents = cheapest ?? 0
     const days = d.commit?.transitDays?.description
       ? parseInt(d.commit.transitDays.description, 10) || null
       : null
