@@ -57,12 +57,16 @@ export async function middleware(request: NextRequest) {
     return NextResponse.rewrite(new URL('/not-found', request.url))
   }
 
-  // Admin host: only /admin/* is reachable; root bounces to /admin.
+  // Admin host: only /admin/* and /api/* are reachable; root bounces to /admin.
+  // `/api/*` has to pass through because the admin UI POSTs to `/api/shipping/*`,
+  // `/api/products/*`, etc. Blocking those broke the Canada Post label button
+  // with a spurious HTTP 404.
   if (role === 'admin') {
     if (pathname === '/' || pathname === '') {
       return NextResponse.redirect(new URL('/admin', request.url))
     }
-    if (!isAdminPath) {
+    const isApiPath = pathname.startsWith('/api/')
+    if (!isAdminPath && !isApiPath) {
       return NextResponse.rewrite(new URL('/not-found', request.url))
     }
   }
