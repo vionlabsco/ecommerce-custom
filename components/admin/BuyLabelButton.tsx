@@ -105,7 +105,31 @@ export function BuyLabelButton({
   const [carrier, setCarrier] = useState<Carrier>(
     selectedShipping?.carrier ?? 'fedex',
   )
-  const services = useMemo(() => servicesFor(carrier, country), [carrier, country])
+
+  // Merge the customer's actual checkout choice (if any) into the service
+  // list. FedEx returns different service codes per country (e.g. Canada
+  // uses INTERNATIONAL_ECONOMY for domestic, the US uses FEDEX_GROUND), so
+  // our hardcoded lists sometimes don't include the customer's real pick.
+  // Always show the customer's actual service as an option so the admin
+  // doesn't have to guess.
+  const services = useMemo(() => {
+    const base = servicesFor(carrier, country)
+    if (
+      selectedShipping &&
+      selectedShipping.carrier === carrier &&
+      !base.find((s) => s.code === selectedShipping.serviceCode)
+    ) {
+      return [
+        {
+          code: selectedShipping.serviceCode,
+          label: `${selectedShipping.serviceName} — customer's choice at checkout`,
+        },
+        ...base,
+      ]
+    }
+    return base
+  }, [carrier, country, selectedShipping])
+
   const [serviceCode, setServiceCode] = useState(
     selectedShipping?.serviceCode ?? services[0].code,
   )
@@ -117,12 +141,18 @@ export function BuyLabelButton({
     | null
   >(null)
 
-  // Keep serviceCode in sync when carrier changes.
+  // Keep serviceCode in sync when carrier changes. If the current selection
+  // isn't in the new list, fall back to the customer's choice (when the
+  // switched carrier matches) or the first available service.
   useMemo(() => {
     if (!services.find((s) => s.code === serviceCode)) {
-      setServiceCode(services[0].code)
+      const customerChoice =
+        selectedShipping && selectedShipping.carrier === carrier
+          ? selectedShipping.serviceCode
+          : null
+      setServiceCode(customerChoice ?? services[0].code)
     }
-  }, [services, serviceCode])
+  }, [services, serviceCode, carrier, selectedShipping])
 
   async function buy() {
     setBusy(true)
