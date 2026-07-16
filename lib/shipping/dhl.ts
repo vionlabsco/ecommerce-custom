@@ -16,10 +16,11 @@ const HOST_BASE = 'https://express.api.dhl.com/mydhlapi'
 const PATH_SANDBOX = '/test'
 const PATH_PROD = ''
 
-const API_KEY = process.env.DHL_API_KEY || ''
-const API_SECRET = process.env.DHL_API_SECRET || ''
-const ACCOUNT_NUMBER = process.env.DHL_ACCOUNT_NUMBER || ''
-const MODE = (process.env.DHL_MODE || 'sandbox').toLowerCase()
+// Trim defensively — see fedex.ts note on why.
+const API_KEY = (process.env.DHL_API_KEY || '').trim()
+const API_SECRET = (process.env.DHL_API_SECRET || '').trim()
+const ACCOUNT_NUMBER = (process.env.DHL_ACCOUNT_NUMBER || '').trim()
+const MODE = (process.env.DHL_MODE || 'sandbox').trim().toLowerCase()
 
 function host(): string {
   return `${HOST_BASE}${MODE === 'production' ? PATH_PROD : PATH_SANDBOX}`

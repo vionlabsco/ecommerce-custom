@@ -17,10 +17,13 @@ import { getOriginAddress, isOriginConfigured } from './origin'
 const HOST_SANDBOX = 'https://apis-sandbox.fedex.com'
 const HOST_PROD = 'https://apis.fedex.com'
 
-const CLIENT_ID = process.env.FEDEX_CLIENT_ID || ''
-const CLIENT_SECRET = process.env.FEDEX_CLIENT_SECRET || ''
-const ACCOUNT_NUMBER = process.env.FEDEX_ACCOUNT_NUMBER || ''
-const MODE = (process.env.FEDEX_MODE || 'sandbox').toLowerCase()
+// Trim defensively — env vars typed by hand often pick up leading/trailing
+// spaces after the `=`, which quietly breaks OAuth auth (401 with no useful
+// error). Same reason `origin.ts` trims.
+const CLIENT_ID = (process.env.FEDEX_CLIENT_ID || '').trim()
+const CLIENT_SECRET = (process.env.FEDEX_CLIENT_SECRET || '').trim()
+const ACCOUNT_NUMBER = (process.env.FEDEX_ACCOUNT_NUMBER || '').trim()
+const MODE = (process.env.FEDEX_MODE || 'sandbox').trim().toLowerCase()
 
 function host(): string {
   return MODE === 'production' ? HOST_PROD : HOST_SANDBOX
