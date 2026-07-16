@@ -57,10 +57,13 @@ const DHL_SERVICES: Service[] = [
 
 type Carrier = 'canada-post' | 'fedex' | 'dhl'
 
+// Order matters — FedEx is Vion Labs' primary carrier for CA→US, DHL is the
+// backup for international, Canada Post kept in case a future domestic need
+// comes up.
 const CARRIERS: Array<{ id: Carrier; label: string }> = [
-  { id: 'canada-post', label: 'Canada Post' },
   { id: 'fedex', label: 'FedEx' },
   { id: 'dhl', label: 'DHL Express' },
+  { id: 'canada-post', label: 'Canada Post' },
 ]
 
 function servicesFor(carrier: Carrier, country: string): Service[] {
@@ -82,15 +85,30 @@ function servicesFor(carrier: Carrier, country: string): Service[] {
 type Props = {
   orderNumber: string
   destinationCountry: string
+  /** What the customer chose at checkout — pre-selects the carrier + service
+   *  so the admin's next click matches what the customer already paid for. */
+  selectedShipping?: {
+    carrier: Carrier
+    serviceCode: string
+    serviceName: string
+  } | null
 }
 
-export function BuyLabelButton({ orderNumber, destinationCountry }: Props) {
+export function BuyLabelButton({
+  orderNumber,
+  destinationCountry,
+  selectedShipping,
+}: Props) {
   const router = useRouter()
   const country = normalizeCountry(destinationCountry)
 
-  const [carrier, setCarrier] = useState<Carrier>('canada-post')
+  const [carrier, setCarrier] = useState<Carrier>(
+    selectedShipping?.carrier ?? 'fedex',
+  )
   const services = useMemo(() => servicesFor(carrier, country), [carrier, country])
-  const [serviceCode, setServiceCode] = useState(services[0].code)
+  const [serviceCode, setServiceCode] = useState(
+    selectedShipping?.serviceCode ?? services[0].code,
+  )
 
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)

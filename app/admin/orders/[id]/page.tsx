@@ -150,6 +150,7 @@ export default async function OrderDetailPage({ params }: { params: { id: string
                     <BuyLabelButton
                       orderNumber={order.number}
                       destinationCountry={order.shippingAddress.country || 'CA'}
+                      selectedShipping={order.selectedShipping ?? null}
                     />
 
                     <div className="relative">

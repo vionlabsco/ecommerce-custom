@@ -28,6 +28,15 @@ export type TicketStatus = 'open' | 'pending' | 'closed'
 export type OrderItem = { name: string; variant: string; qty: number; priceCents: number }
 export type TimelineEvent = { at: string; label: string }
 
+/** Shipping choice the customer made at checkout. Stored on the order so the
+ *  admin knows which carrier + service to buy the label from — no guessing.
+ *  Null for orders placed before the multi-carrier picker landed. */
+export type SelectedShipping = {
+  carrier: 'fedex' | 'dhl' | 'canada-post'
+  serviceCode: string
+  serviceName: string
+} | null
+
 export type Order = {
   id: string
   number: string
@@ -43,6 +52,8 @@ export type Order = {
   /** Discount amount in cents — already subtracted from totalCents. */
   discountCents: number
   shippingAddress: { line1: string; city: string; region: string; postal: string; country: string }
+  /** Which carrier + service the customer picked at checkout. */
+  selectedShipping?: SelectedShipping
   paymentStatus: PaymentStatus
   cancelled: boolean
   fulfillment: { status: FulfillmentStatus; carrier?: string; tracking?: string; fulfilledAt?: string }
@@ -333,6 +344,7 @@ function rowToOrder(r: any): Order {
     discountCode: r.discount_code ?? null,
     discountCents: r.discount_cents ?? 0,
     shippingAddress: r.shipping_address,
+    selectedShipping: r.selected_shipping ?? null,
     paymentStatus: r.payment_status,
     cancelled: r.cancelled,
     fulfillment: r.fulfillment,
@@ -353,6 +365,7 @@ function orderToRow(o: Order) {
     discount_code: o.discountCode,
     discount_cents: o.discountCents,
     shipping_address: o.shippingAddress,
+    selected_shipping: o.selectedShipping ?? null,
     payment_status: o.paymentStatus,
     cancelled: o.cancelled,
     fulfillment: o.fulfillment,
@@ -454,6 +467,14 @@ export type NewOrderInput = {
   }>
   shippingAddress: Order['shippingAddress']
   shippingMethod: ShippingMethod
+  /** Optional live-rate selection from the checkout carrier picker. If set,
+   *  the server re-fetches the rate from the specified carrier + service to
+   *  compute authoritative shippingCents. `shippingMethod` becomes the
+   *  fallback when the live-rate lookup fails at order time. */
+  liveRate?: {
+    carrier: 'fedex' | 'dhl' | 'canada-post'
+    serviceCode: string
+  }
   /** Optional applied discount code — case-insensitive, validated server-side. */
   discountCode?: string | null
   paymentStatus?: PaymentStatus
@@ -469,6 +490,70 @@ export function computeShippingCents(
   if (method === 'express') return Math.max(0, site.expressShippingCents)
   if (discountedSubtotalCents >= site.freeShippingThresholdCents) return 0
   return Math.max(0, site.flatShippingCents)
+}
+
+/** Re-fetch a live rate the customer picked at checkout so the server (not
+ *  the client) computes the authoritative shipping cents. Returns null if
+ *  the carrier / service is no longer available — createOrder falls back to
+ *  the flat rate in that case. Imports are lazy so a store without any
+ *  carrier configured doesn't pay the load cost. */
+async function refetchLiveRate(input: {
+  carrier: 'fedex' | 'dhl' | 'canada-post'
+  serviceCode: string
+  toPostal: string
+  toCountry: string
+  toCity: string
+  weightGrams: number
+}): Promise<{ totalCents: number; serviceCode: string; serviceName: string } | null> {
+  const p = site.parcelDefaults
+  try {
+    if (input.carrier === 'fedex') {
+      const { getRates } = await import('@/lib/shipping/fedex')
+      const rates = await getRates({
+        toPostal: input.toPostal,
+        toCountry: input.toCountry,
+        weightGrams: input.weightGrams,
+      })
+      const match = rates.find((r) => r.serviceCode === input.serviceCode)
+      return match
+        ? { totalCents: match.totalCents, serviceCode: match.serviceCode, serviceName: match.serviceName }
+        : null
+    }
+    if (input.carrier === 'dhl') {
+      const { getRates } = await import('@/lib/shipping/dhl')
+      const rates = await getRates({
+        toPostal: input.toPostal,
+        toCountry: input.toCountry,
+        toCity: input.toCity || 'Unknown',
+        weightGrams: input.weightGrams,
+        lengthCm: p.lengthCm,
+        widthCm: p.widthCm,
+        heightCm: p.heightCm,
+      })
+      const match = rates.find((r) => r.serviceCode === input.serviceCode)
+      return match
+        ? { totalCents: match.totalCents, serviceCode: match.serviceCode, serviceName: match.serviceName }
+        : null
+    }
+    if (input.carrier === 'canada-post') {
+      const { getRates } = await import('@/lib/shipping/canada-post')
+      const rates = await getRates({
+        toPostal: input.toPostal,
+        toCountry: input.toCountry,
+        weightGrams: input.weightGrams,
+        lengthCm: p.lengthCm,
+        widthCm: p.widthCm,
+        heightCm: p.heightCm,
+      })
+      const match = rates.find((r) => r.serviceCode === input.serviceCode)
+      return match
+        ? { totalCents: match.totalCents, serviceCode: match.serviceCode, serviceName: match.serviceName }
+        : null
+    }
+  } catch (e) {
+    console.error('[refetchLiveRate] failed:', (e as Error).message)
+  }
+  return null
 }
 
 /** Create an order from a storefront checkout — this is the storefront → admin
@@ -518,7 +603,41 @@ export async function createOrder(input: NewOrderInput): Promise<Order> {
   }
 
   const discountedSubtotal = Math.max(0, subtotalCents - discountCents)
-  const shippingCents = computeShippingCents(input.shippingMethod, discountedSubtotal)
+
+  // 4. Shipping: if the customer picked a live rate at checkout, re-fetch it
+  //    server-side and use the fresh cents. If lookup fails (carrier down,
+  //    service no longer available), fall back to the flat method — better
+  //    to charge flat than drop the order.
+  let shippingCents = 0
+  let selectedShipping: SelectedShipping = null
+  if (input.liveRate) {
+    const totalWeightGrams =
+      site.parcelDefaults.baseGrams +
+      site.parcelDefaults.perItemGrams *
+        items.reduce((s, i) => s + i.qty, 0)
+    const refetched = await refetchLiveRate({
+      carrier: input.liveRate.carrier,
+      serviceCode: input.liveRate.serviceCode,
+      toPostal: input.shippingAddress.postal,
+      toCountry: input.shippingAddress.country,
+      toCity: input.shippingAddress.city,
+      weightGrams: totalWeightGrams,
+    })
+    if (refetched) {
+      shippingCents = Math.max(0, refetched.totalCents)
+      selectedShipping = {
+        carrier: input.liveRate.carrier,
+        serviceCode: refetched.serviceCode,
+        serviceName: refetched.serviceName,
+      }
+    } else {
+      // Live rate unavailable — flat fallback.
+      shippingCents = computeShippingCents(input.shippingMethod, discountedSubtotal)
+    }
+  } else {
+    shippingCents = computeShippingCents(input.shippingMethod, discountedSubtotal)
+  }
+
   const taxCents = Math.max(0, Math.round(discountedSubtotal * TAX_RATE))
   const totalCents = Math.max(0, discountedSubtotal + shippingCents + taxCents)
   const id = token(8)
@@ -537,11 +656,20 @@ export async function createOrder(input: NewOrderInput): Promise<Order> {
     discountCode,
     discountCents,
     shippingAddress: input.shippingAddress,
+    selectedShipping,
     paymentStatus,
     cancelled: false,
     fulfillment: { status: 'unfulfilled' },
     timeline: [
       { at: placedAt, label: 'Order placed' },
+      ...(selectedShipping
+        ? [
+            {
+              at: placedAt,
+              label: `Selected ${selectedShipping.carrier.toUpperCase()} ${selectedShipping.serviceName}`,
+            },
+          ]
+        : []),
       ...(discountCode ? [{ at: placedAt, label: `Discount ${discountCode} applied` }] : []),
       ...(paymentStatus === 'paid' ? [{ at: placedAt, label: 'Payment captured' }] : []),
     ],
