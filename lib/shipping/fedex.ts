@@ -224,11 +224,6 @@ export async function createShipment(input: {
       ? input.commodities
       : [{ description: 'Merchandise', quantity: 1, unitPriceDollars: 1, weightGrams: input.weightGrams }]
 
-  const totalCustomsValue = commodityList.reduce(
-    (s, c) => s + c.unitPriceDollars * c.quantity,
-    0,
-  )
-
   const commoditiesPayload = commodityList.map((c) => ({
     description: c.description.slice(0, 450) || 'Merchandise',
     countryOfManufacture: origin.country,
@@ -307,13 +302,14 @@ export async function createShipment(input: {
         },
         commodities: commoditiesPayload,
       },
+      // No declaredValue on the package — customsClearanceDetail.commodities[]
+      // already carries the customs valuation. FedEx's newer API interprets
+      // package-level declaredValue as an insurance opt-in and requires a
+      // currency-type field we don't send, triggering "Insured value
+      // currency type is missing or invalid."
       requestedPackageLineItems: [
         {
           weight: { units: 'LB', value: Number(weightLbs.toFixed(2)) },
-          declaredValue: {
-            amount: Number(totalCustomsValue.toFixed(2)),
-            currency,
-          },
           customerReferences: [
             { customerReferenceType: 'CUSTOMER_REFERENCE', value: input.orderNumber },
           ],
