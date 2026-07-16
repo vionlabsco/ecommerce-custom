@@ -358,83 +358,31 @@ export function CheckoutForm() {
           </div>
         </fieldset>
 
-        {/* ── Delivery — live rates or flat fallback ── */}
-        <fieldset>
-          <legend className="font-display text-xl">Delivery</legend>
+        {/* ── Delivery — only shown once we have enough of an address to
+             actually quote rates. Prevents the confusing "Standard Free /
+             Express $18" default from flashing before the customer has typed
+             their postal code — those are a fallback, not the real offering. */}
+        {postal.trim().length >= 3 && (
+          <fieldset>
+            <legend className="font-display text-xl">Delivery</legend>
 
-          {ratesLoading && (
-            <p className="mt-4 text-[13px] text-ink-soft">Fetching live shipping rates…</p>
-          )}
+            {ratesLoading && (
+              <p className="mt-4 text-[13px] text-ink-soft">
+                Fetching live shipping rates…
+              </p>
+            )}
 
-          {!ratesLoading && liveRates.length > 0 && (
-            <div className="mt-4 space-y-3">
-              {liveRates.map((rate) => {
-                const id = `${rate.carrier}-${rate.serviceCode}`
-                const active =
-                  selection.kind === 'live' &&
-                  selection.rate.carrier === rate.carrier &&
-                  selection.rate.serviceCode === rate.serviceCode
-                return (
-                  <label
-                    key={id}
-                    className={cn(
-                      'flex cursor-pointer items-center justify-between rounded-lg border px-4 py-3.5 transition',
-                      active ? 'border-ink bg-paper' : 'border-line hover:border-ink/40',
-                    )}
-                  >
-                    <span className="flex items-center gap-3">
-                      <input
-                        type="radio"
-                        name="delivery"
-                        checked={active}
-                        onChange={() => setSelection({ kind: 'live', rate })}
-                        className="accent-ink"
-                      />
-                      <span>
-                        <span className="text-sm font-medium">
-                          {rate.carrierLabel} — {rate.serviceName}
-                        </span>
-                        <span className="block text-[12px] text-ink-soft">
-                          {rate.transitDays
-                            ? `~${rate.transitDays} business day${rate.transitDays === 1 ? '' : 's'}`
-                            : 'Live rate'}
-                        </span>
-                      </span>
-                    </span>
-                    <span className="text-sm">{formatPrice(rate.totalCents)}</span>
-                  </label>
-                )
-              })}
-            </div>
-          )}
-
-          {!ratesLoading && liveRates.length === 0 && (
-            <>
-              {ratesError && (
-                <p className="mt-4 rounded-md bg-amber-50 px-3 py-2 text-[12.5px] text-amber-800 ring-1 ring-inset ring-amber-200">
-                  Couldn&rsquo;t reach carriers for a live quote. Showing flat rates.
-                </p>
-              )}
+            {!ratesLoading && liveRates.length > 0 && (
               <div className="mt-4 space-y-3">
-                {[
-                  {
-                    id: 'standard' as const,
-                    title: 'Standard',
-                    note: '3–5 business days',
-                    price: standardShip,
-                  },
-                  {
-                    id: 'express' as const,
-                    title: 'Express',
-                    note: '1–2 business days',
-                    price: EXPRESS_CENTS,
-                  },
-                ].map((opt) => {
+                {liveRates.map((rate) => {
+                  const id = `${rate.carrier}-${rate.serviceCode}`
                   const active =
-                    selection.kind === 'flat' && selection.method === opt.id
+                    selection.kind === 'live' &&
+                    selection.rate.carrier === rate.carrier &&
+                    selection.rate.serviceCode === rate.serviceCode
                   return (
                     <label
-                      key={opt.id}
+                      key={id}
                       className={cn(
                         'flex cursor-pointer items-center justify-between rounded-lg border px-4 py-3.5 transition',
                         active ? 'border-ink bg-paper' : 'border-line hover:border-ink/40',
@@ -445,26 +393,85 @@ export function CheckoutForm() {
                           type="radio"
                           name="delivery"
                           checked={active}
-                          onChange={() =>
-                            setSelection({ kind: 'flat', method: opt.id })
-                          }
+                          onChange={() => setSelection({ kind: 'live', rate })}
                           className="accent-ink"
                         />
                         <span>
-                          <span className="text-sm font-medium">{opt.title}</span>
-                          <span className="block text-[12px] text-ink-soft">{opt.note}</span>
+                          <span className="text-sm font-medium">
+                            {rate.carrierLabel} — {rate.serviceName}
+                          </span>
+                          <span className="block text-[12px] text-ink-soft">
+                            {rate.transitDays
+                              ? `~${rate.transitDays} business day${rate.transitDays === 1 ? '' : 's'}`
+                              : 'Live rate'}
+                          </span>
                         </span>
                       </span>
-                      <span className="text-sm">
-                        {opt.price === 0 ? 'Free' : formatPrice(opt.price)}
-                      </span>
+                      <span className="text-sm">{formatPrice(rate.totalCents)}</span>
                     </label>
                   )
                 })}
               </div>
-            </>
-          )}
-        </fieldset>
+            )}
+
+            {!ratesLoading && liveRates.length === 0 && (
+              <>
+                {ratesError && (
+                  <p className="mt-4 rounded-md bg-amber-50 px-3 py-2 text-[12.5px] text-amber-800 ring-1 ring-inset ring-amber-200">
+                    Couldn&rsquo;t reach carriers for a live quote. Showing flat rates.
+                  </p>
+                )}
+                <div className="mt-4 space-y-3">
+                  {[
+                    {
+                      id: 'standard' as const,
+                      title: 'Standard',
+                      note: '3–5 business days',
+                      price: standardShip,
+                    },
+                    {
+                      id: 'express' as const,
+                      title: 'Express',
+                      note: '1–2 business days',
+                      price: EXPRESS_CENTS,
+                    },
+                  ].map((opt) => {
+                    const active =
+                      selection.kind === 'flat' && selection.method === opt.id
+                    return (
+                      <label
+                        key={opt.id}
+                        className={cn(
+                          'flex cursor-pointer items-center justify-between rounded-lg border px-4 py-3.5 transition',
+                          active ? 'border-ink bg-paper' : 'border-line hover:border-ink/40',
+                        )}
+                      >
+                        <span className="flex items-center gap-3">
+                          <input
+                            type="radio"
+                            name="delivery"
+                            checked={active}
+                            onChange={() =>
+                              setSelection({ kind: 'flat', method: opt.id })
+                            }
+                            className="accent-ink"
+                          />
+                          <span>
+                            <span className="text-sm font-medium">{opt.title}</span>
+                            <span className="block text-[12px] text-ink-soft">{opt.note}</span>
+                          </span>
+                        </span>
+                        <span className="text-sm">
+                          {opt.price === 0 ? 'Free' : formatPrice(opt.price)}
+                        </span>
+                      </label>
+                    )
+                  })}
+                </div>
+              </>
+            )}
+          </fieldset>
+        )}
 
         <fieldset>
           <legend className="flex items-center gap-3 font-display text-xl">
