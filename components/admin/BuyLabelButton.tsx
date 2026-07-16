@@ -1,42 +1,83 @@
 'use client'
 
-// Admin-facing "Buy Canada Post label" widget for the order detail page.
+// Multi-carrier "Buy Label" widget for the order detail page.
 //
-// Two-step flow so the admin can see what they're about to pay before
-// committing:
-//   1. Pick a service (dropdown, defaults sensibly by destination country).
-//   2. Click Buy → hits /api/shipping/labels/canada-post, which creates the
-//      shipment, attaches the tracking PIN to the order, and fires the
-//      shipped-notification email.
+// Three-step flow:
+//   1. Pick a carrier (Canada Post / FedEx / DHL)
+//   2. Pick a service (list changes per carrier + destination country)
+//   3. Click Buy → hits /api/shipping/labels/<carrier>, which creates the
+//      shipment, attaches tracking, and fires the shipped-notification email.
 //
-// The API route also flips `fulfillment.status` to 'fulfilled', so after a
-// successful buy the parent page's manual carrier-entry form should be
-// hidden on the next render. This component reports success in place until
-// the caller triggers a refresh.
+// Carriers that aren't configured (no env vars) still show up in the picker
+// but the Buy click returns a friendly 503 with a "not configured" message.
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { normalizeCountry } from '@/lib/shipping/countries'
 
-// Canada Post service codes — subset the merchant is most likely to use.
-// Full list: https://www.canadapost-postescanada.ca/cpc/en/support/kb/business/tools/CT301.page
-const DOMESTIC_SERVICES = [
+type Service = { code: string; label: string }
+
+// ── Canada Post service codes ───────────────────────────────────────────────
+const CP_DOMESTIC: Service[] = [
   { code: 'DOM.RP', label: 'Regular Parcel — cheapest, 3-6 business days' },
   { code: 'DOM.EP', label: 'Expedited Parcel — 1-3 business days' },
   { code: 'DOM.XP', label: 'Xpresspost — next business day (major centres)' },
-  { code: 'DOM.PC', label: 'Priority — next business day, delivery by 10:30' },
+  { code: 'DOM.PC', label: 'Priority — next business day by 10:30' },
 ]
-
-const USA_SERVICES = [
+const CP_USA: Service[] = [
   { code: 'USA.TP', label: 'Tracked Packet USA — 4-7 business days' },
   { code: 'USA.EP', label: 'Expedited Parcel USA — 4-7 business days' },
   { code: 'USA.XP', label: 'Xpresspost USA — 2-3 business days' },
 ]
-
-const INTL_SERVICES = [
+const CP_INTL: Service[] = [
   { code: 'INT.TP', label: 'Tracked Packet International — 6-10 business days' },
   { code: 'INT.XP', label: 'Xpresspost International — 4-7 business days' },
 ]
+
+// ── FedEx service codes ─────────────────────────────────────────────────────
+const FEDEX_DOMESTIC: Service[] = [
+  { code: 'FEDEX_GROUND', label: 'FedEx Ground — 1-5 business days' },
+  { code: 'FEDEX_EXPRESS_SAVER', label: 'Express Saver — 3 business days' },
+  { code: 'FEDEX_2_DAY', label: '2Day — 2 business days' },
+  { code: 'STANDARD_OVERNIGHT', label: 'Standard Overnight — next business day' },
+]
+const FEDEX_INTL: Service[] = [
+  { code: 'INTERNATIONAL_ECONOMY', label: 'International Economy — 4-6 business days' },
+  { code: 'INTERNATIONAL_PRIORITY', label: 'International Priority — 1-3 business days' },
+]
+
+// ── DHL Express service codes ──────────────────────────────────────────────
+// DHL uses product codes; these are the most common Express offerings.
+const DHL_SERVICES: Service[] = [
+  { code: 'P', label: 'Express Worldwide — end of next business day' },
+  { code: 'U', label: 'Express Worldwide (non-doc)' },
+  { code: 'D', label: 'Express Worldwide Document' },
+  { code: 'N', label: 'Domestic Express — next business day' },
+]
+
+type Carrier = 'canada-post' | 'fedex' | 'dhl'
+
+const CARRIERS: Array<{ id: Carrier; label: string }> = [
+  { id: 'canada-post', label: 'Canada Post' },
+  { id: 'fedex', label: 'FedEx' },
+  { id: 'dhl', label: 'DHL Express' },
+]
+
+function servicesFor(carrier: Carrier, country: string): Service[] {
+  if (carrier === 'canada-post') {
+    if (country === 'CA') return CP_DOMESTIC
+    if (country === 'US') return CP_USA
+    return CP_INTL
+  }
+  if (carrier === 'fedex') {
+    // FedEx: domestic set only applies if shipper + recipient share country.
+    // We don't know shipper here, so key off recipient — CA + US both use the
+    // "domestic-looking" set, everywhere else uses international.
+    if (country === 'CA' || country === 'US') return FEDEX_DOMESTIC
+    return FEDEX_INTL
+  }
+  return DHL_SERVICES
+}
 
 type Props = {
   orderNumber: string
@@ -45,26 +86,31 @@ type Props = {
 
 export function BuyLabelButton({ orderNumber, destinationCountry }: Props) {
   const router = useRouter()
-  // Normalize free-text country ("United States", "Canada") to ISO-2 so the
-  // service dropdown picks the right list. Existing orders were stored with
-  // free text before the checkout form used a country <select>.
   const country = normalizeCountry(destinationCountry)
-  const services =
-    country === 'CA' ? DOMESTIC_SERVICES : country === 'US' ? USA_SERVICES : INTL_SERVICES
 
+  const [carrier, setCarrier] = useState<Carrier>('canada-post')
+  const services = useMemo(() => servicesFor(carrier, country), [carrier, country])
   const [serviceCode, setServiceCode] = useState(services[0].code)
+
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [result, setResult] = useState<
-    | { trackingPin: string; labelUrl: string; totalCents: number }
+    | { carrier: Carrier; trackingPin: string; labelUrl: string; totalCents: number }
     | null
   >(null)
+
+  // Keep serviceCode in sync when carrier changes.
+  useMemo(() => {
+    if (!services.find((s) => s.code === serviceCode)) {
+      setServiceCode(services[0].code)
+    }
+  }, [services, serviceCode])
 
   async function buy() {
     setBusy(true)
     setError(null)
     try {
-      const res = await fetch('/api/shipping/labels/canada-post', {
+      const res = await fetch(`/api/shipping/labels/${carrier}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ orderNumber, serviceCode }),
@@ -76,12 +122,11 @@ export function BuyLabelButton({ orderNumber, destinationCountry }: Props) {
         return
       }
       setResult({
+        carrier,
         trackingPin: j.trackingPin,
         labelUrl: j.labelUrl,
         totalCents: j.totalCents,
       })
-      // Ask the server component to refetch so the manual carrier form is
-      // replaced by the "fulfilled" summary.
       router.refresh()
     } catch (e) {
       setError((e as Error).message || 'network error')
@@ -91,21 +136,24 @@ export function BuyLabelButton({ orderNumber, destinationCountry }: Props) {
   }
 
   if (result) {
+    const carrierName =
+      CARRIERS.find((c) => c.id === result.carrier)?.label ?? result.carrier
     return (
       <div className="rounded-md bg-emerald-50 px-4 py-3 text-sm text-emerald-900 ring-1 ring-inset ring-emerald-600/20">
-        <p className="font-medium">Canada Post label purchased.</p>
+        <p className="font-medium">{carrierName} label purchased.</p>
         <p className="mt-1 break-all text-[13px]">
           Tracking: <span className="font-mono">{result.trackingPin}</span>
         </p>
         {result.totalCents > 0 && (
           <p className="mt-0.5 text-[13px]">
-            Charged: ${(result.totalCents / 100).toFixed(2)} CAD
+            Charged: ${(result.totalCents / 100).toFixed(2)}
           </p>
         )}
         <a
           href={result.labelUrl}
           target="_blank"
           rel="noopener noreferrer"
+          download={`${result.carrier}-${result.trackingPin}.pdf`}
           className="mt-2 inline-block rounded-md bg-emerald-700 px-3 py-1.5 text-[12px] font-medium text-white transition-colors hover:bg-emerald-800"
         >
           Download label PDF →
@@ -117,8 +165,25 @@ export function BuyLabelButton({ orderNumber, destinationCountry }: Props) {
   return (
     <div className="rounded-md border border-gray-200 bg-white p-4">
       <p className="text-[12px] font-semibold uppercase tracking-wider text-gray-500">
-        Canada Post — buy label
+        Buy shipping label
       </p>
+
+      <label className="mt-3 block">
+        <span className="text-[12px] text-gray-600">Carrier</span>
+        <select
+          value={carrier}
+          onChange={(e) => setCarrier(e.target.value as Carrier)}
+          disabled={busy}
+          className="mt-1 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-[13px] text-gray-900 focus:border-gray-500 focus:outline-none focus:ring-1 focus:ring-gray-500 disabled:opacity-60"
+        >
+          {CARRIERS.map((c) => (
+            <option key={c.id} value={c.id}>
+              {c.label}
+            </option>
+          ))}
+        </select>
+      </label>
+
       <label className="mt-3 block">
         <span className="text-[12px] text-gray-600">Service</span>
         <select
@@ -134,6 +199,7 @@ export function BuyLabelButton({ orderNumber, destinationCountry }: Props) {
           ))}
         </select>
       </label>
+
       <button
         onClick={buy}
         disabled={busy}
@@ -147,8 +213,9 @@ export function BuyLabelButton({ orderNumber, destinationCountry }: Props) {
         </p>
       )}
       <p className="mt-2 text-[11px] text-gray-500">
-        Buys a real label, attaches tracking to the order, and emails the customer.
-        Charged to the card on your Canada Post account.
+        Buys a real label from the selected carrier, attaches tracking to the
+        order, and emails the customer. Charged to the account on file for the
+        carrier you pick.
       </p>
     </div>
   )
