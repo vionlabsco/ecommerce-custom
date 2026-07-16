@@ -72,12 +72,27 @@ export async function POST(req: NextRequest) {
     country: order.shippingAddress.country || 'CA',
   }
 
+  // Build customs commodities from the order's actual line items. FedEx
+  // requires this for cross-border shipments — for domestic it's ignored but
+  // sending it makes the shape identical for both cases (fewer branches).
+  const perItemWeightGrams = Math.floor(
+    (weightGrams - p.baseGrams) / Math.max(1, totalItems),
+  )
+  const commodities = order.items.map((i) => ({
+    description: i.name.slice(0, 200),
+    quantity: i.qty,
+    unitPriceDollars: i.priceCents / 100,
+    weightGrams: Math.max(1, perItemWeightGrams),
+  }))
+
   try {
     const shipment = await createShipment({
       serviceCode,
       weightGrams,
       to,
       orderNumber,
+      commodities,
+      currency: site.currency,
     })
 
     await fulfillOrder(order.id, 'FedEx', shipment.trackingNumber)

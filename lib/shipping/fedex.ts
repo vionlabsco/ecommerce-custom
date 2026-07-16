@@ -184,11 +184,26 @@ export async function getRates(input: {
 
 // ── createShipment ──────────────────────────────────────────────────────────
 
+export type ShipmentCommodity = {
+  description: string
+  quantity: number
+  /** Unit price in the base currency, in dollars (not cents). */
+  unitPriceDollars: number
+  /** Weight per unit in grams. */
+  weightGrams: number
+}
+
 export async function createShipment(input: {
   serviceCode: string
   weightGrams: number
   to: ShippingDestination
   orderNumber: string
+  /** Optional commodity list — required for cross-border shipments (FedEx
+   *  rejects the label if it's missing or has a zero customs value). If not
+   *  provided, we fall back to a single "Merchandise" line at $1 minimum. */
+  commodities?: ShipmentCommodity[]
+  /** Base currency for customs values. Defaults to CAD. */
+  currency?: string
 }): Promise<FedExShipmentResult> {
   if (!fedexCanCreateShipment()) {
     throw new Error('FedEx is not fully configured for shipment creation')
@@ -196,8 +211,41 @@ export async function createShipment(input: {
   const origin = getOriginAddress()
   const toCountry = normalizeCountry(input.to.country)
   const weightLbs = Math.max(0.1, input.weightGrams / 453.592)
+  const currency = (input.currency || 'CAD').toUpperCase()
+  const isInternational = toCountry !== origin.country
 
-  const body = {
+  // Build commodities for the customs declaration. FedEx requires this for
+  // any recipient whose country demands a customs value — often triggered
+  // even by CA→US shipments. Fall back to a $1 minimum so we never send
+  // zero/null which the API rejects with "recipient country doesn't accept
+  // zero or null as customs value".
+  const commodityList: ShipmentCommodity[] =
+    input.commodities && input.commodities.length > 0
+      ? input.commodities
+      : [{ description: 'Merchandise', quantity: 1, unitPriceDollars: 1, weightGrams: input.weightGrams }]
+
+  const totalCustomsValue = commodityList.reduce(
+    (s, c) => s + c.unitPriceDollars * c.quantity,
+    0,
+  )
+
+  const commoditiesPayload = commodityList.map((c) => ({
+    description: c.description.slice(0, 450) || 'Merchandise',
+    countryOfManufacture: origin.country,
+    quantity: Math.max(1, Math.floor(c.quantity)),
+    quantityUnits: 'PCS',
+    unitPrice: { amount: Number(c.unitPriceDollars.toFixed(2)), currency },
+    customsValue: {
+      amount: Number((c.unitPriceDollars * c.quantity).toFixed(2)),
+      currency,
+    },
+    weight: {
+      units: 'LB',
+      value: Number((c.weightGrams / 453.592).toFixed(2)),
+    },
+  }))
+
+  const body: any = {
     labelResponseOptions: 'LABEL',
     accountNumber: { value: ACCOUNT_NUMBER },
     requestedShipment: {
@@ -246,15 +294,46 @@ export async function createShipment(input: {
         imageType: 'PDF',
         labelStockType: 'PAPER_4X6',
       },
+      // Always send customs. FedEx accepts it on domestic labels (just ignores
+      // it) and requires it on cross-border. Cheaper than branching.
+      customsClearanceDetail: {
+        dutiesPayment: {
+          paymentType: 'SENDER',
+          payor: {
+            responsibleParty: {
+              accountNumber: { value: ACCOUNT_NUMBER },
+            },
+          },
+        },
+        commodities: commoditiesPayload,
+      },
       requestedPackageLineItems: [
         {
           weight: { units: 'LB', value: Number(weightLbs.toFixed(2)) },
+          declaredValue: {
+            amount: Number(totalCustomsValue.toFixed(2)),
+            currency,
+          },
           customerReferences: [
             { customerReferenceType: 'CUSTOMER_REFERENCE', value: input.orderNumber },
           ],
         },
       ],
     },
+  }
+
+  // For international shipments FedEx also wants shippingDocumentSpecification
+  // for the commercial invoice. Add it defensively.
+  if (isInternational) {
+    body.requestedShipment.shippingDocumentSpecification = {
+      shippingDocumentTypes: ['COMMERCIAL_INVOICE'],
+      commercialInvoiceDetail: {
+        documentFormat: {
+          docType: 'PDF',
+          stockType: 'PAPER_LETTER',
+        },
+      },
+    }
   }
 
   const res = await authedFetch('/ship/v1/shipments', {
