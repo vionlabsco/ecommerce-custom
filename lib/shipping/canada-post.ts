@@ -17,6 +17,8 @@
 // Auth: HTTP Basic (username:password) where username / password are the
 // "API user" credentials you create in Canada Post's Developer Program.
 
+import { normalizeCountry } from './countries'
+
 const HOST_DEV = 'https://ct.soa-gw.canadapost.ca'
 const HOST_PROD = 'https://soa-gw.canadapost.ca'
 
@@ -139,12 +141,13 @@ export async function getRates(input: {
   // Canada Post's "get rates" endpoint accepts either a domestic or a US /
   // international destination — the destination sub-tree is what varies.
   let destinationXml: string
-  if (input.toCountry === 'CA') {
+  const toCountry = normalizeCountry(input.toCountry)
+  if (toCountry === 'CA') {
     destinationXml = `<domestic><postal-code>${xmlEscape(toPostal)}</postal-code></domestic>`
-  } else if (input.toCountry === 'US') {
+  } else if (toCountry === 'US') {
     destinationXml = `<united-states><zip-code>${xmlEscape(toPostal)}</zip-code></united-states>`
   } else {
-    destinationXml = `<international><country-code>${xmlEscape(input.toCountry)}</country-code></international>`
+    destinationXml = `<international><country-code>${xmlEscape(toCountry)}</country-code></international>`
   }
 
   const body =
@@ -220,7 +223,10 @@ export async function createShipment(input: {
   }
   const weightKg = Math.max(0.1, input.weightGrams / 1000)
   const toPostal = input.to.postal.replace(/\s+/g, '').toUpperCase()
-  const isDomestic = (input.to.country || 'CA').toUpperCase() === 'CA'
+  // Accept "Canada" / "United States" free-text and normalize to ISO-2 so
+  // this function doesn't blow up on legacy order rows.
+  const country = normalizeCountry(input.to.country)
+  const isDomestic = country === 'CA'
 
   // Delivery spec varies slightly by destination country. We ship as a small
   // parcel with no signature and no card-on-delivery — merchant tunes later.

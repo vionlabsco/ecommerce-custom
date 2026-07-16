@@ -16,6 +16,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { normalizeCountry } from '@/lib/shipping/countries'
 
 // Canada Post service codes — subset the merchant is most likely to use.
 // Full list: https://www.canadapost-postescanada.ca/cpc/en/support/kb/business/tools/CT301.page
@@ -44,7 +45,10 @@ type Props = {
 
 export function BuyLabelButton({ orderNumber, destinationCountry }: Props) {
   const router = useRouter()
-  const country = (destinationCountry || 'CA').toUpperCase()
+  // Normalize free-text country ("United States", "Canada") to ISO-2 so the
+  // service dropdown picks the right list. Existing orders were stored with
+  // free text before the checkout form used a country <select>.
+  const country = normalizeCountry(destinationCountry)
   const services =
     country === 'CA' ? DOMESTIC_SERVICES : country === 'US' ? USA_SERVICES : INTL_SERVICES
 

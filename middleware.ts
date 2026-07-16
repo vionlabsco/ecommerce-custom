@@ -51,22 +51,22 @@ export async function middleware(request: NextRequest) {
   const role = classify(request.headers.get('host'))
   const isAdminPath = pathname.startsWith('/admin')
   const isAccountPath = pathname.startsWith('/account')
+  const isApiPath = pathname.startsWith('/api/')
 
   // Storefront host: /admin/* is invisible.
   if (role === 'storefront' && isAdminPath) {
     return NextResponse.rewrite(new URL('/not-found', request.url))
   }
 
-  // Admin host: only /admin/* and /api/* are reachable; root bounces to /admin.
+  // Admin host: only /admin/*, /api/*, and account routes are reachable.
   // `/api/*` has to pass through because the admin UI POSTs to `/api/shipping/*`,
-  // `/api/products/*`, etc. Blocking those broke the Canada Post label button
-  // with a spurious HTTP 404.
+  // `/api/products/*`, etc. — otherwise those calls get rewritten to /not-found
+  // and the API's own auth check never gets a chance to run.
   if (role === 'admin') {
     if (pathname === '/' || pathname === '') {
       return NextResponse.redirect(new URL('/admin', request.url))
     }
-    const isApiPath = pathname.startsWith('/api/')
-    if (!isAdminPath && !isApiPath) {
+    if (!isAdminPath && !isApiPath && !isAccountPath) {
       return NextResponse.rewrite(new URL('/not-found', request.url))
     }
   }
@@ -76,8 +76,10 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
-  // Storefront paths that don't need a session — let them through fast.
-  if (!isAdminPath && !isAccountPath) {
+  // Public paths (storefront pages, static routes) — no auth needed.
+  // /api/* runs the auth flow below so admin-only API routes can read
+  // `x-admin-email` from the middleware-set header.
+  if (!isAdminPath && !isAccountPath && !isApiPath) {
     return NextResponse.next()
   }
 
@@ -120,6 +122,22 @@ export async function middleware(request: NextRequest) {
       data: { user },
     } = await supabase.auth.getUser()
     userEmail = user?.email ?? null
+  }
+
+  // ── /api/* (server routes) ───────────────────────────────────────────────
+  // Attach identity headers if the caller is signed in, then let the route
+  // run its own auth check. Middleware never redirects an API call — a JSON
+  // 401/403 from the route is more useful than an HTML login redirect.
+  if (isApiPath) {
+    if (userEmail) {
+      const headers = new Headers(request.headers)
+      headers.set('x-customer-email', userEmail)
+      if (isAllowedAdmin(userEmail)) {
+        headers.set('x-admin-email', userEmail)
+      }
+      response = NextResponse.next({ request: { headers } })
+    }
+    return response
   }
 
   // ── /account/* (customer surface) ────────────────────────────────────────
