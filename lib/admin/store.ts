@@ -56,7 +56,15 @@ export type Order = {
   selectedShipping?: SelectedShipping
   paymentStatus: PaymentStatus
   cancelled: boolean
-  fulfillment: { status: FulfillmentStatus; carrier?: string; tracking?: string; fulfilledAt?: string }
+  fulfillment: {
+    status: FulfillmentStatus
+    carrier?: string
+    tracking?: string
+    fulfilledAt?: string
+    /** Base64 data URL or absolute URL to the label PDF. Persists so the admin
+     *  can re-download the label from the order page at any time. */
+    labelUrl?: string
+  }
   timeline: TimelineEvent[]
 }
 
@@ -841,11 +849,22 @@ export async function getDashboardStats(): Promise<DashboardStats> {
 }
 
 // ── Mutators (called by server actions in ./actions.ts) ──────────────────────
-export async function fulfillOrder(id: string, carrier: string, tracking: string) {
+export async function fulfillOrder(
+  id: string,
+  carrier: string,
+  tracking: string,
+  labelUrl?: string,
+) {
   const o = await getOrder(id)
   if (!o || o.cancelled) return
   const at = new Date().toISOString()
-  o.fulfillment = { status: 'fulfilled', carrier, tracking, fulfilledAt: at }
+  o.fulfillment = {
+    status: 'fulfilled',
+    carrier,
+    tracking,
+    fulfilledAt: at,
+    labelUrl: labelUrl || undefined,
+  }
   if (o.paymentStatus === 'pending') o.paymentStatus = 'paid'
   o.timeline.push({ at, label: `Fulfilled via ${carrier}${tracking ? ` · ${tracking}` : ''}` })
   await persistOrder(o)

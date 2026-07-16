@@ -81,7 +81,12 @@ export async function POST(req: NextRequest) {
       orderNumber,
     })
 
-    await fulfillOrder(order.id, 'DHL Express', shipment.trackingNumber)
+    await fulfillOrder(
+      order.id,
+      'DHL Express',
+      shipment.trackingNumber,
+      shipment.labelUrl,
+    )
     void (async () => {
       try {
         const fresh = await getOrder(order.id)

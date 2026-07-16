@@ -196,6 +196,17 @@ export default async function OrderDetailPage({ params }: { params: { id: string
                         Tracking: {order.fulfillment.tracking}
                       </p>
                     )}
+                    {order.fulfillment.labelUrl && (
+                      <a
+                        href={order.fulfillment.labelUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        download={`${order.fulfillment.carrier?.toLowerCase().replace(/\s+/g, '-') || 'label'}-${order.fulfillment.tracking || order.number}.pdf`}
+                        className="mt-3 inline-block rounded-md bg-emerald-700 px-3 py-1.5 text-[12px] font-medium text-white transition-colors hover:bg-emerald-800"
+                      >
+                        Download label PDF →
+                      </a>
+                    )}
                   </div>
                 )}
 

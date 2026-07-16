@@ -95,7 +95,12 @@ export async function POST(req: NextRequest) {
       currency: site.currency,
     })
 
-    await fulfillOrder(order.id, 'FedEx', shipment.trackingNumber)
+    await fulfillOrder(
+      order.id,
+      'FedEx',
+      shipment.trackingNumber,
+      shipment.labelUrl,
+    )
     void (async () => {
       try {
         const fresh = await getOrder(order.id)

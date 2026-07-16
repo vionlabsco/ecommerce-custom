@@ -92,7 +92,12 @@ export async function POST(req: NextRequest) {
     // Attach tracking to the order so the customer sees it on the success
     // page. Fire the shipped-notification email in the background — a slow
     // Resend response shouldn't hold up the admin's "Buy label" click.
-    await fulfillOrder(order.id, 'Canada Post', shipment.trackingPin)
+    await fulfillOrder(
+      order.id,
+      'Canada Post',
+      shipment.trackingPin,
+      shipment.labelUrl,
+    )
     void (async () => {
       try {
         const fresh = await getOrder(order.id)
